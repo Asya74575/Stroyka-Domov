@@ -1,0 +1,907 @@
+/* Секции главной «Кедр» (SPEC.md, разделы 02–11). Значения — tokens.css; общие компоненты — base.css.
+   Диапазоны: ≥ 1200 — десктоп (макет 1440), 1024–1199 — узкий десктоп (десктоп в масштабе, текст по макету 768, L41–L45),
+   600–1023 — планшет (макет 768), < 600 — телефон (макет 360). Границы — 1023.98 / 1024 и 1199.98 / 1200: без «щели» на дробных ширинах (L41). */
+
+.section { padding-block: var(--space-section); }
+.section--flush-top { padding-top: 0; }           /* белая секция сразу за белой: Этапы, Вопросы */
+:root { --faq-gap: -0.625rem; }
+.section--olive { background: var(--c-olive); color: var(--c-white); }
+
+/* Заголовок секции: H2 слева (820), лид справа (500) по нижней линии H2 */
+.sec-head { display: grid; grid-template-columns: 820fr 500fr; column-gap: 2.5rem; align-items: end; margin-bottom: 2rem; }
+@media (max-width: 1023.98px) { .sec-head { grid-template-columns: minmax(0, 1fr); row-gap: 0.5rem; } }
+/* 1024–1199: лид часто выше заголовка — колонки по центру друг друга (правка владельца 2026-10-06, L52) */
+@media (min-width: 1024px) and (max-width: 1199.98px) { .sec-head:not(.sec-head--aside) { align-items: center; } }
+@media (max-width: 599.98px) { .sec-head { row-gap: 1rem; } }
+
+/* Вкладки: H3 S, поля 0/24/18/24; активная — нижняя полоса 2 px #FF8534; под всеми — линия 1 px */
+.tabs-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; border-bottom: 1px solid var(--c-ink); }
+.tabs { display: flex; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { position: relative; flex: none; padding: 0 1.5rem 1.125rem; border: 0; background: none; color: var(--c-text); white-space: nowrap; transition: color var(--transition-soft) var(--ease); }
+.tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--c-orange); opacity: 0; transition: opacity var(--transition-soft) var(--ease); }
+.tab[aria-selected="true"] { color: var(--c-ink); }
+.tab[aria-selected="true"]::after { opacity: 1; }
+.tab:focus-visible { outline-offset: -2px; }
+.tabs-row__note { flex: none; padding-bottom: 1.25rem; }
+/* 599 и уже (правка владельца 2026-10-07, L62): вкладки — на всю ширину контента, текст 16/24 Medium (Body Strong) */
+@media (max-width: 599.98px) {
+  .tabs { flex: 1 1 auto; }
+  .tab { flex: 1 1 auto; padding-inline: 0.25rem; text-align: center; font-family: var(--font-body); font-size: var(--body-size); line-height: var(--body-lh); font-weight: 500; }
+}
+/* 600–767 (правка владельца 2026-10-07, L61): вкладки делят всю ширину контента поровну */
+@media (min-width: 600px) and (max-width: 767.98px) {
+  .tabs { flex: 1 1 auto; }
+  .tab { flex: 1 1 0; text-align: center; font-size: var(--body-size); line-height: var(--body-lh); }   /* 16/24, как на 599 и уже (правка 2026-10-07, L63) */
+}
+.tabs-row--dark { border-bottom-color: var(--c-line-dark); }
+.tabs-row--dark .tab { color: var(--c-chip); }
+.tabs-row--dark .tab[aria-selected="true"] { color: var(--c-white); }
+html:not(.js) .tabs-row .tabs { visibility: hidden; }   /* без JS все панели показаны подряд */
+@media (max-width: 1023.98px) { .tab { padding: 0 1rem 1rem; } }
+@media (max-width: 767px) { .tab { padding: 0 0.5rem 1rem; } .tabs-row__note { display: none; } }
+@media (max-width: 599.98px) { .tab { padding: 0 0.375rem 0.875rem; } }
+/* самые узкие телефоны: «Газобетон · Клеёный брус · Каркас» в 20 px не помещаются — вкладки стилем Body Strong (16/24) */
+@media (max-width: 379px) { .tab { padding: 0 0.375rem 0.75rem; font-family: var(--font-body); font-size: var(--body-size); line-height: var(--body-lh); font-weight: 500; } }
+
+/* Панели вкладок с JS: стоят в одной ячейке — высота блока не прыгает; смена затуханием 0,4 с */
+.js .tab-panels { display: grid; }
+/* уходящая панель гаснет за 0,25 с, новая проявляется за 0,4 с с задержкой 0,15 с — тексты не накладываются */
+.js .tab-panels > .tab-panel { grid-area: 1 / 1; align-content: start; transition: opacity var(--transition-soft) var(--ease) .15s, visibility 0s; }   /* короткая панель не растягивает свои строки до высоты длинной (L48) */
+.js .tab-panels > .tab-panel.is-hidden { opacity: 0; visibility: hidden; transition: opacity .25s var(--ease), visibility 0s linear .25s; }
+
+/* ── 02 Первый экран + цифры ── */
+.hero__grid { display: grid; grid-template-columns: 820fr 500fr; column-gap: 2.5rem; grid-template-areas: "stamp stamp" "title price" "intro actions" "figure figure" "facts facts"; }
+.hero__stamp { grid-area: stamp; height: 2.75rem; border-top: 1px solid var(--c-chip); }
+.hero__title { grid-area: title; align-self: end; color: var(--c-ink); }
+.hero__price { grid-area: price; align-self: end; display: grid; gap: 0.25rem; padding-bottom: 0.625rem; color: var(--c-ink); }
+.hero__intro { grid-area: intro; display: flex; align-items: flex-start; gap: 2rem; margin-top: 1.25rem; }
+.hero__lead { flex: 0 1 31.25rem; }
+.hero__tags { display: grid; flex: none; gap: 0.5rem; color: var(--c-ink); }
+.hero__tags li { display: flex; align-items: center; gap: 0.625rem; }
+.hero__tag-icon { width: 0.75rem; height: 0.75rem; color: var(--c-orange); }
+.hero__actions { grid-area: actions; align-self: center; display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+.hero__actions .button { flex: none; }
+.hero__actions .button--outline { flex: 1 1 auto; }
+.hero__figure { grid-area: figure; position: relative; margin-top: 2.5rem; }
+/* Рамка кадра; внутри — «холст» с пропорциями снимка (6843 × 4650), обрезанный как в макете (сверху 15,4 % запаса).
+   Точки и выноски стоят в процентах от снимка — на любой ширине указывают на те же части дома. */
+.hero__frame { position: relative; aspect-ratio: 1360 / 600; overflow: hidden; container-type: size; background: var(--c-panel); }
+.hero__canvas { --r: 1.4716; --w: max(100cqw, 100cqh * var(--r)); position: absolute; left: calc((100cqw - var(--w)) / 2); top: calc((100cqh - var(--w) / var(--r)) * .154); width: var(--w); aspect-ratio: 6843 / 4650; }
+.hero__img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.corner { position: absolute; z-index: 2; width: 1.125rem; height: 1.125rem; border: 0 solid var(--c-white); pointer-events: none; }
+.corner--tl { top: 1rem; left: 1rem; border-top-width: 2px; border-left-width: 2px; }
+.corner--tr { top: 1rem; right: 1rem; border-top-width: 2px; border-right-width: 2px; }
+.corner--bl { bottom: 1rem; left: 1rem; border-bottom-width: 2px; border-left-width: 2px; }
+.corner--br { bottom: 1rem; right: 1rem; border-bottom-width: 2px; border-right-width: 2px; }
+.hero__dim { position: absolute; z-index: 1; top: 2.125rem; left: 6.8%; right: 6.8%; display: flex; align-items: center; transform: translateY(-50%); }
+.hero__dim-line { position: relative; flex: 1 1 0; height: 1px; background: var(--c-white); clip-path: inset(-0.5rem 0 -0.5rem 0); transition: clip-path var(--motion-main) var(--ease) .15s; }
+.hero__dim-line::before { content: ""; position: absolute; top: -0.375rem; width: 1px; height: 0.8125rem; background: var(--c-white); }
+.hero__dim-line::after { content: ""; position: absolute; top: -0.25rem; width: 0.5rem; height: 0.5rem; border: 0 solid var(--c-white); transform: rotate(45deg); }
+.hero__dim-line--l::before { left: 0; }
+.hero__dim-line--l::after { left: 3px; border-left-width: 1px; border-bottom-width: 1px; }
+.hero__dim-line--r::before { right: 0; }
+.hero__dim-line--r::after { right: 3px; border-right-width: 1px; border-top-width: 1px; }
+.hero__dim-label { flex: none; padding: 0.375rem 0.75rem; background: var(--c-white); color: var(--c-muted); white-space: nowrap; transition: opacity var(--transition-soft) var(--ease); }
+.hero__leader { position: absolute; top: var(--y); height: 1px; background: var(--c-white); transition: opacity var(--transition-soft) var(--ease); }
+.hero__leader--1, .hero__leader--2 { left: 2.5rem; width: calc(var(--x) - 2.5rem); }
+.hero__leader--3 { left: var(--x); right: 2rem; }
+.hero__point { position: absolute; z-index: 1; left: var(--x); top: var(--y); width: 0.875rem; height: 0.875rem; margin: -0.4375rem 0 0 -0.4375rem; border: 2px solid var(--c-white); background: var(--c-orange); transition: opacity var(--transition-soft) var(--ease); }
+.hero__point-num { display: none; }
+/* Пульс точек (правка владельца 2026-10-05): от точки расходится и тает квадратная рамка — 2,2 с, затем пауза до 4,5 с;
+   01, 02, 03 по очереди. Только пока первый экран в окне (hero.js ставит is-live); без JS и при reduced motion — нет */
+.hero__point::before { content: ""; position: absolute; inset: -0.3125rem; border: 2px solid var(--c-orange); opacity: 0; pointer-events: none; will-change: transform, opacity; }
+/* Снимок и пульсирующие точки — в постоянных слоях на всех ширинах: без этого при дробном масштабе экрана (Windows 125 %)
+   браузер перерисовывал снимок в начале и конце каждого пульса, и первый экран «дёргался сам по себе» на 1023 (L56) */
+.hero__canvas { will-change: transform; }
+.hero__figure.is-live .hero__point::before { animation: point-pulse 4.5s cubic-bezier(.22, 1, .36, 1) infinite; }
+.hero__figure.is-live .hero__point--1::before { animation-delay: 1.8s; }
+.hero__figure.is-live .hero__point--2::before { animation-delay: 2.3s; }
+.hero__figure.is-live .hero__point--3::before { animation-delay: 2.8s; }
+.hero__figure.is-paused .hero__point::before { animation-play-state: paused; }
+@keyframes point-pulse {
+  0% { opacity: 0; transform: scale(1); }
+  8% { opacity: .9; }
+  49% { opacity: 0; transform: scale(2.6); }
+  100% { opacity: 0; transform: scale(2.6); }
+}
+@media (prefers-reduced-motion: reduce) { .hero__point::before { display: none; } }
+.hero__note { position: absolute; z-index: 1; top: var(--y); display: flex; align-items: baseline; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--c-white); color: var(--c-muted); white-space: nowrap; transform: translateY(-50%); transition: opacity var(--transition-soft) var(--ease); }
+.hero__note--1, .hero__note--2 { left: 2.5rem; }
+.hero__note--3 { right: 2rem; }
+.hero__caption { position: absolute; inset: 0; pointer-events: none; }
+.hero__callouts { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* для читалок; на узких экранах — список под фото */
+.hero__plaque { position: absolute; right: 1.75rem; bottom: 1.75rem; display: grid; min-width: 13.25rem; padding: 0.875rem 1.125rem 1rem; background: var(--c-olive); }
+.hero__facts { grid-area: facts; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--c-chip); }
+.fact { display: grid; align-content: start; gap: 0.25rem; min-height: 11.5rem; padding: 1.5rem; color: var(--c-ink); }
+.fact + .fact { border-left: 1px solid var(--c-chip); }
+
+/* Размерная линия прорисовывается от центра к краям (0,8 с), затем выноски по очереди: шаг 0,15 с (hero.js) */
+.js .hero__figure:not(.is-drawn) .hero__dim-line--l { clip-path: inset(-0.5rem 0 -0.5rem 100%); }
+.js .hero__figure:not(.is-drawn) .hero__dim-line--r { clip-path: inset(-0.5rem 100% -0.5rem 0); }
+.js .hero__figure:not(.is-drawn) .hero__dim-label,
+.js .hero__figure:not(.is-drawn) .hero__leader,
+.js .hero__figure:not(.is-drawn) .hero__point,
+.js .hero__figure:not(.is-drawn) .hero__note { opacity: 0; }
+.hero__point--1, .hero__leader--1, .hero__note--1 { transition-delay: .95s; }
+.hero__point--2, .hero__leader--2, .hero__note--2 { transition-delay: 1.1s; }
+.hero__point--3, .hero__leader--3, .hero__note--3 { transition-delay: 1.25s; }
+
+/* Узкий десктоп 1024–1199 (правки владельца 2026-10-05, L42): лозунг в 2 строки слева, цена справа по его нижней линии;
+   под ними лид и теги слева, кнопки друг под другом справа. Правая колонка — как на десктопе (500 из 1360), но лозунгу
+   остаётся не меньше 600 px. Кадр фото выше — подписи выносок не заходят на плашку «Сканди 124» */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+  .hero__grid { grid-template-columns: minmax(0, 1fr) min(36.76%, 100% - 600px - 2.5rem); }
+  .hero__lead { flex: 1 1 auto; }
+  .hero__actions { flex-direction: column; align-self: start; }
+  .hero__actions .button, .hero__actions .button--outline { flex: none; width: 100%; }
+  .hero__frame { aspect-ratio: 2 / 1; }
+}
+
+@media (max-width: 1023.98px) {
+  .hero__grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stamp" "title" "price" "intro" "actions" "figure" "facts"; }
+  .hero__price { margin-top: 1.5rem; padding-bottom: 0; }
+  .hero__intro { margin-top: 1.5rem; }
+  .hero__lead { flex: 1 1 auto; }
+  .hero__actions { margin-top: 2rem; }
+  .hero__actions .button, .hero__actions .button--outline { flex: 1 1 0; }
+  .hero__figure { margin-top: 2rem; }
+  .hero__frame { aspect-ratio: 688 / 420; }
+  .hero__dim { top: 2rem; }
+  .hero__leader--1, .hero__leader--2 { left: 1.5rem; width: calc(var(--x) - 1.5rem); }
+  .hero__note--1, .hero__note--2 { left: 1.5rem; }
+  /* выноска 03 не помещается справа от точки — стоит под ней, линия вертикальная (макет 768) */
+  .hero__leader--3 { right: auto; width: 1px; height: 2.5rem; }
+  .hero__note--3 { top: calc(var(--y) + 2.5rem); transform: none; }
+  .hero__plaque { right: 1.5rem; bottom: 1.5rem; }
+  .hero__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fact { min-height: 10rem; }
+  .fact:nth-child(3) { border-left: 0; }
+  .fact:nth-child(n + 3) { border-top: 1px solid var(--c-chip); }
+}
+/* Широкий планшет 980–1023 (правки владельца 2026-10-06, L53): справа было пусто — теги рядом с лозунгом и по центру с ним,
+   лид под лозунгом на всю ширину, ниже цена слева и кнопки в один ряд справа, по центру с ценой. Три колонки: лозунг —
+   первые две, теги — третья; цена — первая, кнопки — вторая и третья (ряд кнопок шире тегов и не сжимает лозунг).
+   Лозунг в 2 строки помещается с ~940 px, граница 980 — с запасом на отрисовку шрифта; уже — раскладка макета 768.
+   .hero__intro раскрыт (display: contents), поэтому появление при загрузке — у лида и тегов по отдельности */
+@media (min-width: 980px) and (max-width: 1023.98px) {
+  .hero__grid { grid-template-columns: minmax(0, 1fr) auto auto; column-gap: 2.5rem; grid-template-areas: "stamp stamp stamp" "title title tags" "lead lead lead" "price actions actions" "figure figure figure" "facts facts facts"; }
+  .hero__intro { display: contents; }
+  .hero__tags { grid-area: tags; align-self: center; }
+  .hero__lead { grid-area: lead; margin-top: 1.5rem; }
+  .hero__price { margin-top: 2.5rem; align-self: center; }
+  .hero__actions { justify-self: end; align-self: center; margin-top: 2.5rem; }
+  .hero__actions .button, .hero__actions .button--outline { flex: none; }
+}
+
+/* Узкий планшет и телефон: подписи выносок на фото не помещаются — на фото только номера, подписи списком под фото (макет 360) */
+@media (max-width: 767px) {
+  .hero__intro { flex-direction: column; gap: 1.5rem; }
+  .hero__leader, .hero__note { display: none; }
+  .hero__point-num { display: block; position: absolute; top: 50%; right: calc(100% + 0.375rem); padding: 0 0.375rem; background: var(--c-white); color: var(--c-muted); transform: translateY(-50%); }
+  .hero__point--3 .hero__point-num { right: auto; left: calc(100% + 0.375rem); }
+  .hero__caption { position: static; pointer-events: auto; }
+  .hero__plaque { position: static; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; min-width: 0; min-height: 3.75rem; padding: 0.75rem 1rem; }
+  .hero__callouts { position: static !important; display: grid; gap: 0.5rem; width: auto; height: auto; margin-top: 0.75rem; overflow: visible; clip: auto; white-space: normal; }
+  .hero__callout { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--c-panel); color: var(--c-text); }
+  .hero__callout .t-body-s { color: var(--c-ink); }
+}
+/* Узкий планшет 600–767 (правка владельца 2026-10-07, L60): лид сразу под лозунгом (10 px), ниже две равные колонки —
+   цена за м² слева, преимущества справа, по центру друг друга. .hero__intro раскрыт (display: contents) — появление
+   при загрузке у лида и тегов по отдельности (L53) */
+@media (min-width: 600px) and (max-width: 767.98px) {
+  .hero__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.5rem; grid-template-areas: "stamp stamp" "title title" "lead lead" "price tags" "actions actions" "figure figure" "facts facts"; }
+  .hero__intro { display: contents; }
+  .hero__lead { grid-area: lead; margin-top: 10px; }
+  .hero__price { margin-top: 2rem; align-self: center; }
+  .hero__tags { grid-area: tags; margin-top: 2rem; align-self: center; }
+}
+@media (max-width: 599.98px) {
+  .hero__grid { grid-template-areas: "stamp" "title" "figure" "price" "intro" "actions" "facts"; }
+  .hero__figure { margin-top: 1.25rem; }
+  .hero__frame { aspect-ratio: 328 / 224; }
+  .corner { width: 0.875rem; height: 0.875rem; }
+  .corner--tl, .corner--tr { top: 0.5rem; }
+  .corner--bl, .corner--br { bottom: 0.5rem; }
+  .corner--tl, .corner--bl { left: 0.5rem; }
+  .corner--tr, .corner--br { right: 0.5rem; }
+  .hero__dim { top: 1.375rem; left: 10%; right: 10%; }
+  .hero__dim-label { padding: 0.25rem 0.625rem; }
+  .hero__price { margin-top: 2rem; }
+  .hero__intro { flex-direction: column; gap: 1.5rem; }
+  .hero__actions { flex-direction: column; margin-top: 1.5rem; }
+  .hero__actions .button, .hero__actions .button--outline { flex: none; width: 100%; }
+  .hero__facts { margin-top: 2rem; border-top: 1px solid var(--c-chip); }
+  .fact { min-height: 10.25rem; padding: 1.25rem 1rem; }
+}
+/* 480–599 (правка владельца 2026-10-07, L63): кнопки первого экрана — в один ряд, одной ширины */
+@media (min-width: 480px) and (max-width: 599.98px) {
+  .hero__actions { flex-direction: row; }
+  .hero__actions .button, .hero__actions .button--outline { flex: 1 1 0; width: auto; padding-inline: 1rem; }
+}
+
+/* ── 04 Проекты ── */
+.project { display: grid; grid-template-columns: 820fr 540fr; padding: 2rem 0; border-bottom: 1px solid var(--c-chip); }
+.tab-panel > .project:last-child { padding-bottom: 0; border-bottom: 0; }
+.project--reverse { grid-template-columns: 549fr 811fr; }
+.project--reverse .project__media { order: 2; aspect-ratio: 811 / 574; }
+.project--reverse .project__info { order: 1; padding: 0 2.5rem 0 0; }
+.project__media { position: relative; align-self: start; aspect-ratio: 820 / 574; overflow: hidden; background: var(--c-panel); }   /* фото по высоте паспорта (макет, правка 2026-10-05) */
+.project__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.project__chip { position: absolute; top: 1.25rem; left: 1.25rem; padding: 0.4375rem 0.75rem; background: var(--c-orange); color: var(--c-white); }
+.plan-card { position: absolute; left: 1.25rem; bottom: 1.25rem; display: grid; gap: 0.375rem; padding: 1rem; background: var(--c-white); }
+.plan-card__head { display: flex; justify-content: space-between; gap: 1rem; color: var(--c-ink); white-space: nowrap; }
+.plan-card img { width: 12.5rem; height: 8rem; }
+.project--reverse .plan-card { left: auto; right: 1.25rem; }   /* у второго проекта схема в правом нижнем углу (макет) */
+.project__info { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; padding-left: 2.5rem; }
+.project__title { display: grid; gap: 0.5rem; }
+.specs { border-bottom: 1px solid var(--c-chip); }
+.specs__row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 3.3125rem; padding: 0.75rem 0.5rem; border-top: 1px solid var(--c-chip); }
+.specs dd { margin: 0; text-align: right; color: var(--c-ink); }
+.project__buy { display: grid; gap: 0.75rem; }
+.project__price { display: flex; align-items: center; gap: 1rem; }
+.project__price .t-price { white-space: nowrap; }
+.project__actions { display: flex; gap: 0.75rem; }
+.project__actions .button { flex: none; }
+.project__actions .button--outline { flex: 1 1 auto; }
+/* Десктоп и широкий планшет (от 980, L45, L54) — наложение карточек в категориях по референсу (svar-stol.ru, «Точная технология…»): строка вкладок
+   «Сканди · Барнхаус · Классика» закреплена под шапкой, карточки прилипают под ней, следующая выезжает снизу
+   и накрывает предыдущую целиком; последняя уезжает вверх вместе со строкой вкладок. Класс stack-on и переменные
+   ставит stack.js: --card-top — где прилипает карточка (под вкладками; если карточка не помещается в окно — выше,
+   так, чтобы её низ с ценой и кнопками был виден), --stack-trim — на сколько раньше закончить блок для вкладок,
+   чтобы они отпускались, когда до них дошла последняя карточка (высота страницы не меняется) */
+@media (min-width: 980px) {
+  .stack-on .projects__stack > .tabs-row { position: sticky; top: calc(var(--header-height) + 1px); z-index: 3; margin-top: -1rem; padding-top: 1rem; background: var(--c-white); }
+  .stack-on .projects__stack { padding-bottom: var(--stack-trim, 0px); }
+  .stack-on .projects__stack > .tab-panels { align-items: start; margin-bottom: calc(-1 * var(--stack-trim, 0px)); }   /* вкладки не тянутся до высоты самой высокой — иначе последняя карточка короткой вкладки «прилипает» сама */
+  .stack-on .tab-panel > .project { position: sticky; top: var(--card-top, 0px); background: var(--c-white); }
+  .stack-on .tab-panel > .project:not(:last-child) { border-bottom-color: transparent; }
+  .stack-on .tab-panel > .project + .project { margin-top: -1px; border-top: 1px solid var(--c-chip); }
+}
+/* Узкий десктоп 1024–1199 (L43): фото по высоте паспорта, кнопки переносятся друг под друга, если не помещаются в ряд */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+  .project__media, .project--reverse .project__media { align-self: stretch; aspect-ratio: auto; }
+  .project__price { flex-wrap: wrap; row-gap: 0.25rem; }
+  .project__actions { flex-wrap: wrap; }
+  .project__actions .button, .project__actions .button--outline { flex: 1 1 auto; }
+}
+@media (max-width: 1023.98px) {
+  .project--reverse .plan-card { left: 1.25rem; right: auto; }
+  .project, .project--reverse { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .project__media, .project--reverse .project__media { order: 0; aspect-ratio: 688 / 460; }
+  .project__info, .project--reverse .project__info { order: 1; padding: 0; }
+  .project__actions .button, .project__actions .button--outline { flex: 1 1 0; }
+}
+@media (max-width: 599.98px) {
+  .project, .project--reverse { gap: 1.5rem; }
+  .project__media, .project--reverse .project__media { aspect-ratio: 328 / 220; }
+  .plan-card { display: none; }
+  .project__chip { top: 0.75rem; left: 0.75rem; }
+  .project__price { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .project__price .t-mono-caps { white-space: nowrap; }   /* «под ключ, цена в договоре» — одной строкой (правка 2026-10-07, L63) */
+  .project__price .t-mono-caps br { display: none; }
+  .project__actions { flex-direction: column; }
+  .project__actions .button, .project__actions .button--outline { flex: none; width: 100%; }
+}
+
+/* 480–599 (правка владельца 2026-10-07, L62): цена слева, кнопки справа — два столбца одной ширины, по центру друг друга.
+   Уже 480 цена (207 px) в половину не помещается — прежний вид, всё в столбик */
+@media (min-width: 480px) and (max-width: 599.98px) {
+  .project__buy { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; column-gap: 1rem; }
+  .project__actions .button { padding-inline: 0.75rem; }
+}
+
+/* ── 05 Материалы: разрез с точками и экспликация ── */
+.cutaway { display: grid; grid-template-columns: 820fr 500fr; gap: 2.5rem; padding-top: 2rem; }
+.cutaway__media { position: relative; align-self: start; min-width: 0; }
+.cutaway__frame { position: relative; aspect-ratio: 820 / 627; overflow: hidden; container-type: size; background: var(--c-olive-dark); }
+/* «Холст» с пропорциями снимка (820 × 627) накрывает рамку любой высоты: точки стоят в процентах от снимка
+   и указывают на те же части дома, даже когда рамка выше снимка (узкий десктоп) */
+.cutaway__canvas { --r: 1.3078; --w: max(100cqw, 100cqh * var(--r)); position: absolute; left: calc((100cqw - var(--w)) / 2); top: calc((100cqh - var(--w) / var(--r)) / 2); width: var(--w); aspect-ratio: 820 / 627; }
+.cutaway__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cutaway__point { position: absolute; z-index: 2; left: var(--x); top: var(--y); display: grid; place-items: center; width: 2rem; height: 2rem; margin: -1rem 0 0 -1rem; padding: 0; border: 2px solid var(--c-white); background: var(--c-olive); color: var(--c-white); font-family: var(--font-mono); font-size: var(--mono-s-size); line-height: var(--mono-s-lh); transition: background-color var(--transition-soft) var(--ease); }
+.cutaway__point.is-active { background: var(--c-orange); }
+.cutaway__line { position: absolute; z-index: 1; left: 0; top: 0; width: 0; height: 0; background: var(--c-orange); pointer-events: none; transition: left var(--transition-soft) var(--ease), top var(--transition-soft) var(--ease), width var(--transition-soft) var(--ease), height var(--transition-soft) var(--ease), opacity var(--transition-soft) var(--ease); }
+html:not(.js) .cutaway__line { display: none; }
+.cutaway__tip { position: absolute; z-index: 3; top: 1.25rem; left: calc(100% - 20rem); display: grid; gap: 0.75rem; width: 18.75rem; padding: 1.25rem; background: var(--c-white); color: var(--c-ink); transition: left var(--transition-soft) var(--ease); }
+.cutaway__tip.is-left { left: 1.25rem; }
+.cutaway__tip-title, .cutaway__tip-text, .cutaway__tip .chips { transition: opacity var(--transition-soft) var(--ease); }
+.cutaway__tip.is-fading .cutaway__tip-title, .cutaway__tip.is-fading .cutaway__tip-text, .cutaway__tip.is-fading .chips { opacity: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.chips li { padding: 0.3125rem 0.625rem; background: var(--c-panel); color: var(--c-ink); }
+.cutaway__info { display: grid; align-content: start; gap: 1.25rem; min-width: 0; }
+.cutaway__about { display: grid; gap: 0.75rem; padding: 1.25rem; background: var(--c-olive-dark); }
+.layers__head { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 0.5rem; }
+.layer { border-top: 1px solid var(--c-line-dark); transition: border-color var(--transition-soft) var(--ease); }
+.layer.is-open { border-top-color: var(--c-orange); }
+.layer__btn { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 0.5rem; border: 0; background: none; color: var(--c-white); text-align: left; }
+.layer__btn:focus-visible { outline-offset: -2px; }
+.layer__num { color: var(--c-chip); transition: color var(--transition-soft) var(--ease); }
+.layer.is-open .layer__num { color: var(--c-orange); }
+.layer__icon { width: 0.875rem; height: 0.875rem; color: var(--c-chip); }
+.layer.is-open .layer__icon { color: var(--c-orange); }
+.layer__body { padding: 0 0.5rem 0.75rem; color: var(--c-chip); }
+/* Узкий десктоп 1024–1199 (L43): фото по высоте экспликации, но не ниже пропорции снимка; подсказка — 280 px под текст 16 px */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+  .cutaway__media { align-self: stretch; }
+  .cutaway__media::before { content: ""; display: block; aspect-ratio: 820 / 627; }
+  .cutaway__frame { position: absolute; inset: 0; aspect-ratio: auto; }
+  .cutaway__tip { left: calc(100% - 280px - 1.25rem); gap: 8px; width: 280px; padding: 16px; }
+}
+@media (max-width: 1023.98px) {
+  .cutaway { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .cutaway__frame { aspect-ratio: 688 / 526; }
+  .cutaway__tip { top: 0.75rem; left: calc(100% - 19.5rem); }
+  .cutaway__tip.is-left { left: 0.75rem; }
+}
+@media (max-width: 599.98px) {
+  .cutaway__frame { aspect-ratio: 328 / 250; }
+  .cutaway__point { width: 1.5rem; height: 1.5rem; margin: -0.75rem 0 0 -0.75rem; }
+  .cutaway__line { display: none; }
+  .cutaway__tip, .cutaway__tip.is-left { position: static; width: auto; }
+}
+
+/* ── 06 Калькулятор ── */
+.calc__grid { display: grid; grid-template-columns: 819fr 501fr; gap: 2.5rem; align-items: start; }
+.calc__params { min-width: 0; border-top: 1px solid var(--c-ink); }
+.calc-row { display: grid; grid-template-columns: 12.25rem minmax(0, 1fr); gap: 1.5rem; padding: 1.25rem 0; border-bottom: 1px solid var(--c-chip); }
+.calc-row__label { display: grid; align-content: start; gap: 0.5rem; color: var(--c-ink); }
+.choice { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+/* 01 Площадь: значение, линейка-ползунок */
+.area__top { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; color: var(--c-ink); }
+.area__value { white-space: nowrap; }
+.ruler { position: relative; max-width: 37.5rem; margin-top: 0.5rem; }
+.ruler__track { position: relative; height: 1.125rem; }
+.ruler__track::before { content: ""; position: absolute; left: 0.5625rem; right: 0.5625rem; top: 0.5rem; height: 1px; background: var(--c-chip); }
+.ruler__fill { position: absolute; left: 0.5625rem; top: 0.4375rem; width: calc((100% - 1.125rem) * var(--p)); height: 3px; background: var(--c-orange); }
+.ruler__input { position: absolute; inset: 0 0 auto 0; width: 100%; height: 1.125rem; margin: 0; background: transparent; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.ruler__input:focus-visible { outline: none; }
+.ruler__input::-webkit-slider-runnable-track { height: 1.125rem; background: transparent; border: 0; }
+.ruler__input::-webkit-slider-thumb { width: 1.125rem; height: 1.125rem; border: 2px solid var(--c-white); border-radius: 0; background: var(--c-orange); -webkit-appearance: none; appearance: none; }
+.ruler__input::-moz-range-track { height: 1.125rem; background: transparent; border: 0; }
+.ruler__input::-moz-range-thumb { box-sizing: border-box; width: 1.125rem; height: 1.125rem; border: 2px solid var(--c-white); border-radius: 0; background: var(--c-orange); }
+.ruler__input:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--c-orange); outline-offset: 2px; }
+.ruler__input:focus-visible::-moz-range-thumb { outline: 2px solid var(--c-orange); outline-offset: 2px; }
+.ruler__ticks { display: flex; justify-content: space-between; align-items: flex-start; height: 0.75rem; margin: 0.5rem 0.5625rem 0; }
+.ruler__ticks i { width: 1px; height: 0.375rem; background: var(--c-ink); }
+.ruler__ticks i.is-major { height: 0.75rem; }
+.ruler__labels { position: relative; height: 1.25rem; margin: 0.5rem 0.5625rem 0; }
+.ruler__labels span { position: absolute; left: calc(var(--p) * 100%); transform: translateX(-50%); }
+/* 02 Этажность: сегменты */
+.segments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.segment { position: relative; display: grid; place-items: center; min-height: 3.25rem; margin-left: -1px; padding: 0 0.75rem; border: 1px solid var(--c-ink); color: var(--c-ink); text-align: center; cursor: pointer; transition: background-color var(--transition-soft) var(--ease), color var(--transition-soft) var(--ease), border-color var(--transition-soft) var(--ease); }
+.segment:first-child { margin-left: 0; }
+.segment:has(.choice:checked) { z-index: 1; border-color: var(--c-olive); background: var(--c-olive); color: var(--c-white); }
+.segment:has(.choice:focus-visible), .mat-card:has(.choice:focus-visible), .kit-card:has(.choice:focus-visible), .chip-toggle:has(.choice:focus-visible) { z-index: 2; outline: 2px solid var(--c-orange); outline-offset: 2px; }
+/* 03 Материал стен: карточки с фото */
+.materials-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+.mat-card { display: flex; flex-direction: column; border: 1px solid var(--c-chip); color: var(--c-ink); cursor: pointer; transition: border-color var(--transition-soft) var(--ease); }
+.mat-card:has(.choice:checked) { border-color: var(--c-orange); }
+.mat-card__img { position: relative; display: block; aspect-ratio: 190 / 167; overflow: hidden; background: var(--c-panel); }
+.mat-card__img img { width: 100%; height: 100%; object-fit: cover; }
+.mat-card__mark { position: absolute; top: 0.5rem; left: 0.5rem; opacity: 0; transition: opacity var(--transition-soft) var(--ease); }
+.mat-card:has(.choice:checked) .mat-card__mark { opacity: 1; }
+.mat-card__text { display: grid; gap: 0.25rem; padding: 0.75rem 0.875rem 0.875rem; }
+/* 04 Комплектация: квадратное радио */
+.kits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+.kit-card { display: grid; align-content: start; gap: 0.5rem; min-height: 6.75rem; padding: 1rem; border: 1px solid var(--c-chip); color: var(--c-ink); cursor: pointer; transition: border-color var(--transition-soft) var(--ease); }
+.kit-card:has(.choice:checked) { border-color: var(--c-ink); }
+.kit-card__head { display: flex; align-items: center; gap: 0.625rem; }
+.kit-card__radio { display: grid; place-content: center; width: 0.875rem; height: 0.875rem; flex: none; border: 1px solid var(--c-text); transition: border-color var(--transition-soft) var(--ease); }
+.kit-card__radio::before { content: ""; width: 0.5rem; height: 0.5rem; background: var(--c-orange); opacity: 0; transition: opacity var(--transition-soft) var(--ease); }
+.kit-card:has(.choice:checked) .kit-card__radio { border-color: var(--c-orange); }
+.kit-card:has(.choice:checked) .kit-card__radio::before { opacity: 1; }
+/* 05 Дополнительно: чипы */
+.extras { display: flex; flex-wrap: wrap; align-content: flex-start; align-self: start; gap: 0.5rem; }   /* ряд «Дополнительно» тянется до высоты сметы, кнопки — нет (L47) */
+.chip-toggle { display: inline-flex; flex: 1 1 auto; align-items: center; justify-content: center; gap: 0.5rem; min-height: 2.625rem; padding: 0 1rem; border: 1px solid var(--c-chip); color: var(--c-ink); cursor: pointer; transition: background-color var(--transition-soft) var(--ease), color var(--transition-soft) var(--ease), border-color var(--transition-soft) var(--ease); }
+.chip-toggle svg { width: 0.75rem; height: 0.75rem; flex: none; }
+/* 767 и уже (правка владельца 2026-10-07, L60): «Дополнительно» — два ряда по две одинаковые кнопки, как на 980–1199 (L44) */
+@media (max-width: 767.98px) {
+  .extras { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; }
+  .chip-toggle { padding: 0 0.75rem; }
+}
+.chip-toggle__check { display: none; }
+.chip-toggle:has(.choice:checked) { border-color: var(--c-olive); background: var(--c-olive); color: var(--c-white); }
+.chip-toggle:has(.choice:checked) .chip-toggle__check { display: block; }
+.chip-toggle:has(.choice:checked) .chip-toggle__plus { display: none; }
+/* Смета */
+.estimate { position: relative; display: grid; padding: 1.25rem; background: var(--c-panel); color: var(--c-ink); }
+.estimate__stamp { position: absolute; z-index: 1; top: -0.8125rem; right: 2rem; padding: 0.6875rem 0.875rem 0.5625rem; background: var(--c-orange); color: var(--c-white); text-align: center; transform: rotate(-5deg); }
+.estimate__title { padding: 0.5rem 0 1.25rem; border-bottom: 1px solid var(--c-chip); }
+.estimate__block { display: grid; gap: 0.5rem; padding: 1.25rem 0; border-bottom: 1px solid var(--c-chip); }
+.estimate__block:last-of-type { border-bottom: 0; }
+.estimate__block > .t-label + .dots-row { margin-top: 0.5rem; }
+.estimate__total { margin-top: 0.25rem; white-space: nowrap; }
+.dots-row { display: flex; align-items: baseline; gap: 0.5rem; }
+.dots-row > span:first-child { min-width: 0; }
+.dots-row__dots { flex: 1 1 1rem; min-width: 1rem; border-bottom: 1px dotted var(--c-chip); transform: translateY(-0.25rem); }
+.dots-row > span:last-child { flex: none; white-space: nowrap; }
+.estimate__list { display: grid; gap: 0.5rem; }
+.estimate__cta { display: grid; gap: 1rem; padding-top: 0.75rem; }
+/* Десктоп и широкий планшет (от 980): нижняя линия параметров и низ сметы — на одной линии (правка 2026-10-05). Ряд «Дополнительно» и смета
+   тянутся до высоты соседа, кнопка сметы — внизу плашки */
+@media (min-width: 980px) {
+  .calc__grid { align-items: stretch; }
+  .calc__params { display: flex; flex-direction: column; }
+  .calc__params > .calc-row:last-child { flex: 1 0 auto; }
+  .estimate { display: flex; flex-direction: column; }
+  .estimate__cta { margin-top: auto; }
+}
+/* Узкий десктоп 1024–1199 (L44): комплектации — горизонтальные строки (название слева, состав справа),
+   дополнения — 2 × 2 одинаковые кнопки */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+  .kits { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .kit-card { grid-template-columns: 152px minmax(0, 1fr); align-items: center; gap: 16px; min-height: 0; padding: 14px 16px; }
+  .extras { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 8px; }
+  .chip-toggle { min-height: 42px; }
+  .estimate { padding-top: 64px; }   /* штамп «Цена фиксируется» не заходит на заголовок сметы: зазор под штампом ≥ 12 px (L44, L52) */
+}
+@media (max-width: 1023.98px) {
+  .calc__grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+  .calc-row { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .calc-row__label { display: flex; align-items: baseline; gap: 0.75rem; }
+  .ruler { max-width: none; }
+  .mat-card__img { aspect-ratio: 219 / 140; }
+  .chip-toggle { flex: 0 1 auto; }
+}
+/* 600–767 (правка владельца 2026-10-07, L62): «Тёплый контур» в одну строку — названия комплектаций 14/20 Medium */
+@media (min-width: 600px) and (max-width: 767.98px) {
+  .kit-card .t-lead-strong { font-size: var(--body-s-size); line-height: var(--body-s-lh); white-space: nowrap; }
+}
+@media (max-width: 599.98px) {
+  .segments { grid-template-columns: minmax(0, 1fr); }
+  .segment { margin: -1px 0 0; }
+  .segment:first-child { margin-top: 0; }
+  .materials-pick, .kits { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+  .mat-card { flex-direction: row; align-items: center; }
+  .mat-card__img { width: 7.5rem; flex: none; aspect-ratio: 120 / 80; }
+  .mat-card__mark { top: 0.375rem; left: 0.375rem; }
+  .mat-card__text { padding: 0.75rem 1rem; }
+  .kit-card { min-height: 0; }
+  .estimate { padding-top: 4rem; }
+  .estimate__stamp { right: 1rem; }
+  .estimate__title { padding-top: 0; }
+  .dots-row { align-items: flex-end; }
+}
+/* 480–599 (правка владельца 2026-10-07, L62): «Этажность» — три кнопки в один ряд */
+@media (min-width: 480px) and (max-width: 599.98px) {
+  .segments { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .segment { margin: 0 0 0 -1px; padding-inline: 0.5rem; }
+  .segment:first-child { margin-left: 0; }
+}
+
+/* ── 07 Этапы ── */
+.sec-head--aside .stages__total { justify-self: end; display: grid; justify-items: end; gap: 0.5rem; padding-bottom: 0.5rem; color: var(--c-ink); text-align: right; }
+.stages__panel { display: grid; gap: 3.5rem; padding: 2.5rem 4rem; background: var(--c-panel); }
+html:not(.js) .stages__scroller { display: none; }
+/* Подсказка «листайте» и затухание краёв — только когда шкала шире экрана и листается (stages.js ставит is-scrollable,
+   is-at-start / is-at-end; после первого пролистывания подсказка тает — is-scrolled). Правка 2026-10-07, L61 */
+.stages__hint { display: none; margin-top: -0.75rem; color: var(--c-text); text-align: center; transition: opacity var(--motion-main) var(--ease); }
+.is-scrollable .stages__hint { display: block; }
+.is-scrollable.is-scrolled .stages__hint { opacity: 0; }
+.is-scrollable .stages__scroller { --fade-l: 2.5rem; --fade-r: 2.5rem; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent 100%); }
+.is-scrollable.is-at-start .stages__scroller { --fade-l: 0px; }
+.is-scrollable.is-at-end .stages__scroller { --fade-r: 0px; }
+.stages__scale { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.stages__track { position: absolute; top: 1rem; left: calc(100% / 12); right: calc(100% / 12); height: 1px; background: var(--c-text); }
+.stages__progress { position: absolute; left: 0; top: -1px; width: calc(var(--progress, 0) * 100%); height: 2px; background: var(--c-orange); transition: width var(--motion-main) var(--ease); }
+.stage-tab { position: relative; display: grid; justify-items: center; align-content: start; padding: 0 0.25rem 0.25rem; border: 0; background: none; color: var(--c-ink); text-align: center; }
+.stage-tab__dot { position: relative; display: grid; place-items: center; width: 2rem; height: 2rem; transition: background-color var(--transition-soft) var(--ease); }
+.stage-tab__dot::before { content: ""; box-sizing: border-box; width: 0.75rem; height: 0.75rem; border: 2px solid var(--c-orange); background: var(--c-white); outline: 0.375rem solid var(--c-white); transition: all var(--transition-soft) var(--ease); }
+.stage-tab.is-done .stage-tab__dot::before { width: 0.625rem; height: 0.625rem; border-width: 0; background: var(--c-orange); outline-width: 0; }
+.stage-tab.is-current .stage-tab__dot { background: color-mix(in srgb, var(--c-orange) 22%, transparent); }
+.stage-tab.is-current .stage-tab__dot::before { width: 1rem; height: 1rem; border-width: 0; background: var(--c-orange); outline-width: 0; }
+.stage-tab__name { margin-top: 1.5rem; }
+/* Пульс точек шкалы (правка владельца 2026-10-06, как на первом экране, L37): от точки расходится и тает квадратная рамка (12 → 41 px) — 2,2 с;
+   01 → 06 по очереди с шагом 0,4 с — волна вдоль линии, цикл 5 с. Только пока шкала в окне (stages.js ставит is-live / is-paused);
+   без JS и при reduced motion — нет */
+.stage-tab__dot::after { content: ""; position: absolute; top: 50%; left: 50%; width: 0.75rem; height: 0.75rem; margin: -0.375rem 0 0 -0.375rem; box-sizing: border-box; border: 2px solid var(--c-orange); opacity: 0; pointer-events: none; will-change: transform, opacity; }
+.stages__panel.is-live .stage-tab__dot::after { animation: stage-pulse 5s cubic-bezier(.22, 1, .36, 1) infinite; animation-delay: calc(var(--n, 0) * 0.4s); }
+.stages__panel.is-paused .stage-tab__dot::after { animation-play-state: paused; }
+.stage-tab:nth-child(3) { --n: 1; }   /* первый ребёнок шкалы — линия, шаги — со 2-го */
+.stage-tab:nth-child(4) { --n: 2; }
+.stage-tab:nth-child(5) { --n: 3; }
+.stage-tab:nth-child(6) { --n: 4; }
+.stage-tab:nth-child(7) { --n: 5; }
+@keyframes stage-pulse {
+  0% { opacity: 0; transform: scale(1); }
+  7% { opacity: .9; }
+  44% { opacity: 0; transform: scale(3.4); }
+  100% { opacity: 0; transform: scale(3.4); }
+}
+@media (prefers-reduced-motion: reduce) { .stage-tab__dot::after { display: none; } }
+.stage-tab__term { margin-top: 0.375rem; }
+.stage-tab:focus-visible { outline-offset: 0; }
+.stage { display: grid; grid-template-columns: 485fr 707fr; gap: 2.5rem; align-items: start; }
+html:not(.js) .stage + .stage { margin-top: 3.5rem; padding-top: 3.5rem; border-top: 1px solid var(--c-chip); }
+.stage__text { display: grid; align-content: start; gap: 1.125rem; }
+.stage__text .t-h3 { color: var(--c-ink); }
+.stage__media { position: relative; overflow: hidden; }
+.stage__img { width: 100%; aspect-ratio: 707 / 420; object-fit: cover; background: var(--c-white); }
+/* 767 и уже (правка владельца 2026-10-07, L60): фон панели — по содержимому выбранного шага, а не по самому длинному.
+   Скрытые шаги вынуты из потока и обрезаны; высота меняется плавно (stages.js) */
+@media (max-width: 767.98px) {
+  .js .stages__panels { position: relative; overflow: hidden; }
+  .js .stages__panels > .tab-panel.is-hidden { position: absolute; inset: 0 0 auto; }
+}
+.checklist { display: grid; gap: 0.75rem; }
+.checklist li { display: flex; align-items: flex-start; gap: 0.75rem; }
+.checklist .mark { margin-top: 2px; }
+/* Узкий десктоп 1024–1199 (L42–L44): шкала ближе к описанию; фото по высоте описания (у всех шагов одна высота —
+   по самому длинному), но не ниже пропорции снимка */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+  .stages__panel { gap: 24px; padding-inline: 2.5rem; }
+  .stage { grid-template-columns: repeat(2, minmax(0, 1fr)); }   /* заголовок шага — 2 строки, как в макете (L18) */
+  .stage__media { align-self: stretch; }
+  .stage__media::before { content: ""; display: block; aspect-ratio: 707 / 420; }
+  .stage__img { position: absolute; inset: 0; height: 100%; aspect-ratio: auto; }
+}
+@media (max-width: 1023.98px) {
+  .sec-head--aside .stages__total { justify-self: start; justify-items: start; margin-top: 1rem; text-align: left; }
+  .stages__panel { gap: 2rem; padding: 2.5rem 2rem; }
+  .stage { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .stage__media { order: -1; }
+  .stage__img { aspect-ratio: 624 / 372; }
+  .stage__text { gap: 0.75rem; }
+}
+@media (max-width: 599.98px) {
+  .stages__panel { gap: 1.5rem; padding: 1.5rem 1rem; }
+  .stages__scroller { margin: -0.5rem -1rem 0; padding: 0.5rem 1rem 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .stages__scroller::-webkit-scrollbar { display: none; }
+  .stages__scale { width: 45rem; }
+  .stage-tab { scroll-snap-align: center; }
+  .stage__img { aspect-ratio: 296 / 176; }
+}
+
+/* Заголовки шагов уже 768: ручной перенос из макета оставлял висящие «участок,», «грунт,», «закрыт» — строки выравнивает браузер (L48) */
+@media (max-width: 767.98px) {
+  .stage__text .t-h3 { text-wrap: balance; }
+  .stage__text .t-h3 br { display: none; }
+}
+/* 600–767: шесть подписей шкалы в ряд не помещались («Фундамент» налезал на «Коробку») — шкала листается пальцем, как на телефоне (L50) */
+@media (min-width: 600px) and (max-width: 767.98px) {
+  .stages__scroller { margin: -0.5rem -2rem 0; padding: 0.5rem 2rem 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .stages__scroller::-webkit-scrollbar { display: none; }
+  .stages__scale { width: max(45rem, 100%); }
+  .stage-tab { scroll-snap-align: center; }
+}
+
+/* ── 08 Гарантии ── */
+.guarantees__lead { max-width: 28.75rem; }
+.terms { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--c-chip); border-bottom: 1px solid var(--c-chip); }
+.term { display: grid; align-content: start; gap: 0.75rem; min-height: 11.5rem; padding: 1.5rem; }
+.term + .term { border-left: 1px solid var(--c-line-dark); }
+.term__what { font-weight: 400; }   /* «на фундамент» и др. — обычное начертание (правка владельца 2026-10-05) */
+.guarantees__row { display: grid; grid-template-columns: 549fr 771fr; gap: 2.5rem; align-items: start; }
+.guarantees__img { width: 100%; aspect-ratio: 549 / 370; object-fit: cover; }
+.conditions { display: grid; }
+.condition { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1.5rem; align-items: baseline; padding: 1.75rem 0 1.5rem; border-bottom: 1px solid var(--c-line-dark); }
+.condition:last-child { border-bottom: 0; }
+.condition__text { display: grid; gap: 0.5rem; }
+/* Узкий десктоп 1024–1199 (L43): фото по высоте условий договора */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+  .guarantees__img { align-self: stretch; height: 100%; }
+}
+@media (max-width: 1023.98px) {
+  .guarantees__lead { max-width: none; }   /* лид на всю ширину, как у остальных секций планшета (L54, L59) */
+  .terms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .term { min-height: 10.5rem; }
+  .term:nth-child(3) { border-left: 0; }
+  .term:nth-child(n + 3) { border-top: 1px solid var(--c-line-dark); }
+  .guarantees__row { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .guarantees__img { aspect-ratio: 688 / 400; }
+  .condition { padding: 1.5rem 0; }
+  .condition:first-child { padding-top: 0; }
+}
+@media (max-width: 599.98px) {
+  .term { min-height: 10.25rem; padding: 1.25rem 1rem; gap: 0.5rem; }
+  .term__what { font-family: var(--font-body); font-size: var(--body-size); line-height: var(--body-lh); font-weight: 400; }
+  .guarantees__img { aspect-ratio: 328 / 220; }
+  .condition { gap: 1rem; }
+}
+
+/* ── 09 Отзывы ── */
+.reviews__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.review { display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem 1.5rem 1.25rem; border: 1px solid var(--c-chip); color: var(--c-ink); }
+.review__author { display: flex; align-items: center; gap: 0.75rem; }
+.review__avatar { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; flex: none; background: var(--c-panel); }
+.review__photo { position: relative; display: block; width: 7.5rem; margin-top: auto; overflow: hidden; cursor: zoom-in; }
+.review__img { width: 100%; height: 5.625rem; object-fit: cover; transition: transform var(--motion-main) var(--ease); }
+.review__zoom { position: absolute; right: 0; bottom: 0; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; background: var(--c-olive); color: var(--c-white); }
+.review__zoom svg { width: 0.625rem; height: 0.625rem; }
+.review__house { padding-top: 0.875rem; border-top: 1px solid var(--c-chip); }
+@media (max-width: 1023.98px) { .reviews__list { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 599.98px) { .reviews__list { gap: 1rem; } .review { padding: 1.25rem 1rem 1rem; } }
+/* Слайдер отзывов, 599 и уже (правка владельца 2026-10-07, L63): карточки листаются пальцем, следующая выглядывает
+   справа; счётчик «1 / 3» и стрелки (reviews.js). Без JS — карточки столбиком, как раньше */
+.reviews__nav { display: none; }
+@media (max-width: 599.98px) {
+  .js .reviews__list { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 86%; margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .js .reviews__list::-webkit-scrollbar { display: none; }
+  .js .review { scroll-snap-align: start; }
+  .js .reviews__nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; }
+  .reviews__arrows { display: flex; gap: 0.5rem; }
+  .reviews__arrow { width: var(--control-height-small); height: var(--control-height-small); }
+  .reviews__arrow .icon { width: 1rem; height: 1rem; }
+  .reviews__arrow--prev .icon { transform: scaleX(-1); }
+  .reviews__arrow:disabled { opacity: .4; cursor: default; }
+}
+@media (hover: hover) { .reviews__arrow:disabled:hover { background: var(--c-white); color: var(--c-ink); } }   /* неактивная стрелка не заливается под курсором */
+
+/* ── 10 Вопросы: аккордеон, открыт один ── */
+.faq__grid { display: grid; grid-template-columns: 549fr 771fr; gap: 2.5rem; align-items: start; }
+.faq__intro { display: grid; justify-items: start; gap: 1.5rem; color: var(--c-ink); }
+@media (min-width: 1024px) { .faq__intro { position: sticky; top: calc(var(--header-height) + 2.5rem); } }   /* едет вместе со страницей до конца списка вопросов */
+.faq__list { border-top: 1px solid var(--c-ink); }
+.faq-item { border-bottom: 1px solid var(--c-chip); }
+.faq-item__q { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr) 1rem; gap: 1.5rem; align-items: baseline; padding: 1.375rem 0; color: var(--c-ink); cursor: pointer; list-style: none; }
+.faq-item__q::-webkit-details-marker { display: none; }
+.faq-item__q:focus-visible { outline-offset: -2px; }
+.faq-item__num { color: var(--c-text); transition: color var(--transition-soft) var(--ease); }
+.faq-item[open]:not(.is-closing) .faq-item__num { color: var(--c-olive); }
+.faq-item__icon { position: relative; align-self: center; width: 1rem; height: 1rem; }
+.faq-item__icon::before, .faq-item__icon::after { content: ""; position: absolute; background: var(--c-ink); transition: transform var(--transition-soft) var(--ease), background-color var(--transition-soft) var(--ease); }
+.faq-item__icon::before { left: 0; right: 0; top: 0.4375rem; height: 2px; }
+.faq-item__icon::after { top: 0; bottom: 0; left: 0.4375rem; width: 2px; }
+.faq-item[open]:not(.is-closing) .faq-item__icon::before { background: var(--c-orange); }
+.faq-item[open]:not(.is-closing) .faq-item__icon::after { transform: scaleY(0); }
+.faq-item__a { overflow: hidden; margin-top: var(--faq-gap); }   /* ответ на 12 px ниже вопроса (22 − 10) */
+.faq-item__a p { padding: 0 4rem 1.375rem 3.25rem; }
+@media (max-width: 1023.98px) {
+  .faq__grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+}
+@media (max-width: 599.98px) {
+  .faq-item__q { gap: 1rem; }
+  .faq-item__a p { padding: 0 2rem 1.375rem 2.75rem; }
+}
+
+/* ── 11 Заявка ── */
+.request__grid { display: grid; grid-template-columns: 820fr 500fr; grid-template-areas: "intro card" "photo card"; column-gap: 2.5rem; row-gap: 1.5rem; }
+.request__intro { grid-area: intro; display: grid; gap: 0.75rem; }
+.request__photo { grid-area: photo; position: relative; align-self: end; }
+.request__frame { aspect-ratio: 820 / 380; }
+.request__frame img { width: 100%; height: 100%; object-fit: cover; }
+.request__caption { position: absolute; left: 1.25rem; bottom: 1.25rem; max-width: calc(100% - 2.5rem); padding: 0.5rem 0.75rem; background: var(--c-white); }
+.request__card { grid-area: card; display: flex; flex-direction: column; justify-content: center; padding: 2rem; background: var(--c-white); color: var(--c-ink); }
+.form__body { display: grid; gap: 1.25rem; }
+.form__body.is-leaving, .form__done.is-entering { opacity: 0; }
+.form__body, .form__done { transition: opacity var(--transition-soft) var(--ease); }
+/* Плашка расчёта в форме (правка владельца 2026-10-05): галочка — настоящий переключатель. Отмечена — фон #ECECE7,
+   «Ваш расчёт приложен к заявке»; снята — белая плашка с рамкой, «Приложить расчёт к заявке», расчёт бледнеет и не уходит
+   с заявкой (form.js). «изменить» — к калькулятору; по возвращении плашка коротко подсвечивается (is-updated) */
+.calc-note { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.875rem; padding: 0.875rem 1rem; border: 1px solid var(--c-panel); background: var(--c-panel); outline: 2px solid transparent; outline-offset: 2px; transition: background-color var(--transition-soft) var(--ease), border-color var(--transition-soft) var(--ease), outline-color var(--motion-main) var(--ease); }
+.calc-note:has(.check__box:not(:checked)) { border-color: var(--c-chip); background: var(--c-white); }
+.calc-note.is-updated { outline-color: var(--c-orange); transition-duration: var(--transition-soft); }
+.calc-note__check { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); align-items: center; gap: 0.875rem; cursor: pointer; }
+.calc-note__text { display: grid; gap: 0.25rem; }
+.calc-note__title { display: block; color: var(--c-ink); }
+.calc-note__title--off { display: none; }
+.calc-note:has(.check__box:not(:checked)) .calc-note__title--on { display: none; }
+.calc-note:has(.check__box:not(:checked)) .calc-note__title--off { display: block; }
+.calc-note__summary { display: block; transition: opacity var(--transition-soft) var(--ease); }
+.calc-note:has(.check__box:not(:checked)) .calc-note__summary { opacity: .55; }
+.calc-note__edit { align-self: center; text-underline-offset: 3px; }
+/* Кнопка сметы: обычный текст или, после «изменить» в форме, «Вернуться к заявке» (класс is-editing ставит form.js) */
+.estimate__cta-edit { display: none; }
+.estimate__cta.is-editing .estimate__cta-main { display: none; }
+.estimate__cta.is-editing .estimate__cta-edit { display: inline; }
+.form__consent { display: grid; gap: 0.5rem; }
+.form__consent a { color: var(--c-olive); text-underline-offset: 2px; }
+.form__submit { display: grid; gap: 0.75rem; }
+.form__done { display: grid; justify-items: start; gap: 1.25rem; }
+.form__done h3:focus { outline: none; }
+/* Узкий десктоп 1024–1199 (L43): фото сразу под текстом и тянется до низа формы — низ фото и бланка на одной линии */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+  .request__grid { grid-template-rows: auto 1fr; row-gap: 24px; }
+  .request__photo { align-self: stretch; }
+  .request__frame { height: 100%; min-height: 240px; aspect-ratio: auto; }
+}
+@media (max-width: 1023.98px) {
+  .request__grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "intro" "card" "photo"; row-gap: 2rem; }
+  .request__frame { aspect-ratio: 688 / 320; }
+}
+/* 768 и уже (правка владельца 2026-10-07, L59): фото формы скрыто — под бланком сразу подвал */
+@media (max-width: 979.98px) {
+  .request__grid { grid-template-areas: "intro" "card"; }
+  .request__photo { display: none; }
+}
+@media (max-width: 599.98px) {
+  .request__card { padding: 1.5rem 1.25rem; }
+  .request__frame { aspect-ratio: 328 / 200; }
+  .request__caption { left: 0.5rem; bottom: 0.5rem; max-width: calc(100% - 1rem); }
+  .calc-note { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; }
+  .calc-note__edit { justify-self: start; margin-left: 2.375rem; }
+}
+
+/* ── Окно «Планировка» ── */
+.modal { width: min(40rem, 100% - 2rem); max-width: none; padding: 1.5rem; border: 0; background: var(--c-white); color: var(--c-ink); }
+.modal::backdrop { background: rgb(48 52 30 / .6); }
+.modal[open] { animation: modal-in var(--transition-soft) var(--ease); }
+.modal[open]::backdrop { animation: modal-in var(--transition-soft) var(--ease); }
+@keyframes modal-in { from { opacity: 0; } to { opacity: 1; } }
+.modal.is-closing, .modal.is-closing::backdrop { opacity: 0; transition: opacity var(--transition-soft) var(--ease); }
+.modal__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.modal__close { width: 3rem; height: 3rem; }
+.modal__img { width: 100%; height: auto; aspect-ratio: 200 / 128; margin-bottom: 1rem; }
+/* Фото отзыва на весь экран: картинка вписана в окно, подпись под ней, крестик в углу экрана */
+.modal--photo { width: fit-content; height: fit-content; padding: 0; overflow: visible; background: transparent; color: var(--c-white); }
+.modal--photo::backdrop { background: rgb(48 52 30 / .92); }
+.modal__figure { display: grid; gap: 0.75rem; justify-items: start; }
+.modal__photo { width: min(92vw, 78vh * var(--r, 1.5)); height: auto; aspect-ratio: var(--r, 1.5); object-fit: cover; background: var(--c-olive-dark); cursor: zoom-out; }
+.modal__caption { color: var(--c-chip); }
+.modal--photo .modal__close { position: fixed; top: 1rem; right: 1rem; }
+
+/* ── Окно заявки (sheet.js; референс only.digital/#brief): оливковый лист на весь экран выезжает снизу,
+   страница под ним размывается и темнеет; внутри — своя шапка (логотип и крестик), текст слева, бланк справа ── */
+html.sheet-open { overflow: hidden; padding-right: var(--sbw, 0px); }   /* страница не прокручивается и не сдвигается */
+.sheet { position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; overflow-y: auto; overscroll-behavior: contain; background: var(--c-olive); color: var(--c-white); transform: translateY(100%); transition: transform var(--motion-main) var(--ease-in-out); }
+.sheet.is-shown { transform: none; }
+.sheet::backdrop { background: rgb(48 52 30 / .5); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); opacity: 0; transition: opacity var(--motion-main) var(--ease-in-out); }
+.sheet.is-shown::backdrop { opacity: 1; }
+.sheet__head { position: sticky; top: 0; z-index: 1; background: var(--c-olive); border-bottom: 1px solid var(--c-line-dark); }
+.sheet__head-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; height: var(--header-height); }
+.sheet__logo { display: block; width: 6.875rem; height: 3rem; }
+@media (min-width: 1024px) and (max-width: 1199.98px) { .sheet__logo { width: 110px; height: 48px; } }   /* как логотип шапки узкого десктопа */
+.sheet__close { width: var(--control-height-small); height: var(--control-height-small); border-color: var(--c-white); background: transparent; color: var(--c-white); }
+.sheet__grid { display: grid; grid-template-columns: 820fr 500fr; column-gap: 2.5rem; align-items: start; padding-block: 5rem 7.5rem; }
+.sheet__intro { position: sticky; top: calc(var(--header-height) + 2.5rem); display: grid; gap: 0.75rem; justify-items: start; }
+.sheet__project { display: grid; width: 100%; gap: 0.25rem; justify-items: start; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--c-line-dark); }
+.sheet__project .t-h3s { margin-top: 0.25rem; }
+.sheet__steps { display: grid; width: 100%; margin: 1.25rem 0 0; padding: 0; list-style: none; border-bottom: 1px solid var(--c-line-dark); }
+.sheet__step { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 1.5rem; align-items: baseline; padding: 1rem 0; border-top: 1px solid var(--c-line-dark); }
+.sheet__card { padding: 2rem; background: var(--c-white); color: var(--c-ink); }
+/* Заголовок, текст и бланк поднимаются по очереди, когда лист почти доехал */
+.sheet__rise { opacity: 0; transform: translateY(1.5rem); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease); }
+.sheet.is-shown .sheet__rise { opacity: 1; transform: none; transition-delay: calc(0.4s + var(--i, 0) * 0.1s); }
+.sheet__intro > :nth-child(2) { --i: 1; }
+.sheet__intro > :nth-child(3) { --i: 2; }
+.sheet__intro > :nth-child(4), .sheet__card { --i: 3; }
+.sheet__intro > :nth-child(5) { --i: 4; }
+@media (min-width: 1024px) and (max-width: 1199.98px) { .sheet__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }   /* левая и правая части окна заявки — одной ширины (L52) */
+@media (max-width: 1023.98px) {
+  .sheet__grid { grid-template-columns: minmax(0, 1fr); row-gap: 2rem; padding-block: 2.5rem 3.75rem; }
+  .sheet__intro { position: static; }
+}
+/* Широкий планшет 980–1023 (правка 2026-10-07): текст слева, бланк справа — две равные колонки, зазор 40, как на 1024 (L52) */
+@media (min-width: 980px) and (max-width: 1023.98px) {
+  .sheet__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2.5rem; }
+  .sheet__intro { position: sticky; }
+}
+@media (max-width: 599.98px) {
+  .sheet__grid { padding-block: 2rem 4rem; }
+  .sheet__card { padding: 1.5rem 1.25rem; }
+}
+
+/* Поле файла: прозрачный input поверх кнопки — работает клик, клавиатура и перетаскивание файла */
+.file { position: relative; display: flex; }
+.file__input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.file__button { display: inline-flex; align-items: center; justify-content: center; gap: 0.75rem; width: 100%; min-height: 3.25rem; padding: 0 1.25rem; border: 1px solid var(--c-ink); color: var(--c-ink); transition: background-color var(--transition-soft) var(--ease), color var(--transition-soft) var(--ease); }
+.file__icon { width: 1.5rem; height: 1.5rem; flex: none; }
+.file__input:focus-visible + .file__button { outline: 2px solid var(--c-orange); outline-offset: 2px; }
+.file__input[aria-invalid="true"] + .file__button { border: 2px solid var(--c-orange); }
+.file__chosen { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; }
+.file__name { min-width: 0; overflow-wrap: anywhere; color: var(--c-ink); }
+.file__remove { margin-left: auto; padding: 0; border: 0; background: none; color: var(--c-olive); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+/* ── Наведение — только мышью ── */
+@media (hover: hover) {
+  .sheet__close:hover { background: var(--c-white); color: var(--c-ink); }
+  .file:hover .file__button { background: var(--c-ink); color: var(--c-white); }
+  .tab:not([aria-selected="true"]):hover { color: var(--c-ink); }
+  .tabs-row--dark .tab:not([aria-selected="true"]):hover { color: var(--c-white); }
+  .cutaway__point:not(.is-active):hover { background: var(--c-olive-dark); }
+  .layer__btn:hover .layer__name { color: var(--c-chip); }
+  .segment:not(:has(.choice:checked)):hover, .kit-card:not(:has(.choice:checked)):hover { border-color: var(--c-ink); }
+  .mat-card:not(:has(.choice:checked)):hover { border-color: var(--c-ink); }
+  .chip-toggle:not(:has(.choice:checked)):hover { border-color: var(--c-ink); }
+  .stage-tab:hover .stage-tab__name { color: var(--c-olive); }
+  .faq-item__q:hover .faq-item__title { color: var(--c-olive); }
+  .review__photo:hover .review__img { transform: scale(1.06); }
+  .calc-note__edit:hover { text-decoration-thickness: 2px; }
+  .form__consent a:hover { text-decoration-thickness: 2px; }
+}
+
+/* ── Движение при прокрутке (правка владельца 2026-10-05). Классы js-reveal и js-draw ставит скрипт в <head>,
+   is-visible / is-drawn — motion.js, js-parallax — parallax.js. Без JS, без IntersectionObserver и при reduced motion
+   всё видно сразу, линии — обычные рамки ── */
+
+/* Появление: блок поднимается на 24 px и проявляется за 0,9 с; data-reveal="1…4" — задержка шагом 0,1 с */
+.js-reveal [data-reveal] { opacity: 0; transform: translateY(1.5rem); }
+.js-reveal [data-reveal].is-visible { opacity: 1; transform: none; transition: opacity .9s var(--ease) var(--reveal-d, 0s), transform .9s var(--ease) var(--reveal-d, 0s); }
+[data-reveal="1"] { --reveal-d: .1s; }
+[data-reveal="2"] { --reveal-d: .2s; }
+[data-reveal="3"] { --reveal-d: .3s; }
+[data-reveal="4"] { --reveal-d: .4s; }
+
+/* Шторка (рецепт shutter): 8 полос оливы закрывают фото и по очереди снизу вверх сжимаются к верхнему краю
+   (1,15 с, шаг 90 мс), фото при этом отъезжает со 108 % до 100 % за 2,4 с. Сам блок не прячется */
+.shutter { display: none; }
+.js-reveal .shutter-photo[data-reveal] { opacity: 1; transform: none; }
+.js-reveal .shutter-photo[data-reveal] .shutter { position: absolute; inset: 0; z-index: 3; display: grid; grid-template-rows: repeat(8, 1fr); pointer-events: none; }
+.js-reveal .shutter-photo[data-reveal] .shutter i { margin-bottom: -1px; background: var(--c-olive); transform-origin: 50% 0; }   /* полосы заходят друг на друга на 1 px — без швов */
+.js-reveal .shutter-photo[data-reveal] > img { transform: scale(1.08); }
+.js-reveal .shutter-photo[data-reveal].is-visible .shutter i { transform: scaleY(0); transition: transform 1.15s cubic-bezier(.65, 0, .35, 1) calc(var(--d, 0ms) + var(--reveal-d, 0s)); }
+.js-reveal .shutter-photo[data-reveal].is-visible > img { transform: none; transition: transform 2.4s var(--ease) var(--reveal-d, 0s); }
+.shutter i:nth-child(8) { --d: 0ms; }
+.shutter i:nth-child(7) { --d: 90ms; }
+.shutter i:nth-child(6) { --d: 180ms; }
+.shutter i:nth-child(5) { --d: 270ms; }
+.shutter i:nth-child(4) { --d: 360ms; }
+.shutter i:nth-child(3) { --d: 450ms; }
+.shutter i:nth-child(2) { --d: 540ms; }
+.shutter i:nth-child(1) { --d: 630ms; }
+
+/* Линии чертежа: рамки таблиц и шкал прорисовываются слева направо за 1,2 с сверху вниз по очереди (шаг 0,08 с —
+   --draw-d от motion.js), когда блок [data-draw] появляется. Рамка прячется, вместо неё рисуется линия того же цвета */
+.tabs-row, .calc__params, .faq__list { --draw-c: var(--c-ink); }
+.tabs-row--dark, .condition { --draw-c: var(--c-line-dark); }
+.calc-row { --draw-c: var(--c-chip); }
+.js-draw .draw-t, .js-draw .draw-b { position: relative; }
+.js-draw .draw-t { border-top-color: transparent; }
+.js-draw .draw-b { border-bottom-color: transparent; }
+.js-draw .draw-t::before, .js-draw .draw-b::after { content: ""; position: absolute; left: 0; right: 0; z-index: 1; height: 1px; background: var(--draw-c, var(--c-chip)); transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+.js-draw .draw-t::before { top: -1px; }
+.js-draw .draw-b::after { bottom: -1px; }
+.js-draw .is-drawn.draw-t::before, .js-draw .is-drawn .draw-t::before,
+.js-draw .is-drawn.draw-b::after, .js-draw .is-drawn .draw-b::after { transform: none; transition: transform 1.2s var(--ease) var(--draw-d, 0s); }
+.js-draw .stages__track { transform: scaleX(0); transform-origin: 0 50%; }
+.js-draw .is-drawn .stages__track { transform: none; transition: transform 1.2s var(--ease) .3s; }
+
+/* Параллакс: фото заявки движется медленнее страницы (картинка выше рамки на 30 %, сдвиг ±15 % высоты рамки);
+   снимок первого экрана на десктопе отстаёт от прокрутки в пределах запаса над кадром — вместе с точками и выносками */
+[data-parallax] { position: relative; overflow: hidden; }
+.js-parallax [data-parallax="photo"] img { position: absolute; left: 0; top: -15%; height: 130%; transform: translate3d(0, var(--shift, 0px), 0); will-change: transform; }
+@media (min-width: 1024px) { .js-parallax [data-parallax="hero"] .hero__canvas { transform: translate3d(0, var(--shift, 0px), 0); will-change: transform; } }
+
+/* ── Широкий планшет 980–1023 (правки владельца 2026-10-06, L54): размеры текста — как на планшете (макет 768), раскладка
+   блоков — в две колонки, как на десктопе. Первый экран — L53 (выше), наложение карточек и выравнивание калькулятора —
+   в правилах «от 980». Уже 980 — раскладка макета 768 в одну колонку ── */
+@media (min-width: 980px) and (max-width: 1023.98px) {
+  /* Проекты: фото и паспорт пополам (в паспорте цена и кнопки — в строку, карточка ниже), у второго проекта зеркально;
+     фото по высоте паспорта */
+  .project, .project--reverse { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2rem; }
+  .project__media, .project--reverse .project__media { align-self: stretch; aspect-ratio: auto; min-height: 20rem; }
+  .project--reverse .project__media { order: 2; }
+  .project--reverse .plan-card { left: auto; right: 1.25rem; }
+  .project__price { flex-wrap: wrap; row-gap: 0.25rem; }
+  .project__actions { flex-wrap: wrap; }
+  .project__actions .button, .project__actions .button--outline { flex: 1 1 auto; }
+  /* Карточка помещается под вкладками при высоте окна 768 (≤ 614 px), иначе при наложении она уезжала под строку вкладок
+     и останавливалась обрезанной — при прокрутке это выглядело как дёрганье (L55). Плотнее поля, строки характеристик 44 px,
+     кнопки 52, текст 16/24 (токены L56) с полями 20 — чтобы стояли в ряд */
+  .project { padding-block: 1.5rem; }
+  .project__info { gap: 1rem; }
+  .specs__row { min-height: 2.75rem; padding-block: 0.5rem; }
+  .project__actions .button { padding: 0 20px; }
+  /* Материалы: слева разрез в пропорциях снимка и под ним подсказка к точке (как на телефоне), справа — описание
+     и экспликация. Фото по высоте экспликации стало бы узким и высоким — крайние точки (15–84 % ширины снимка) ушли бы
+     за край кадра, а подсказка 280 px на фото шириной 500 закрывала бы половину разреза */
+  .cutaway { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); column-gap: 2rem; }
+  .cutaway__media { display: grid; align-content: start; gap: 0.75rem; }
+  .cutaway__frame { aspect-ratio: 820 / 627; }
+  .cutaway__line { display: none; }
+  .cutaway__tip, .cutaway__tip.is-left { position: static; width: auto; }
+  /* Калькулятор: параметры слева, смета справа; комплектации — строками, дополнения — 2 × 2 (как на 1024, L44) */
+  .calc__grid { grid-template-columns: minmax(0, 819fr) minmax(0, 501fr); gap: 2.5rem; }
+  .kits { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .kit-card { grid-template-columns: 184px minmax(0, 1fr); align-items: center; gap: 16px; min-height: 0; padding: 14px 16px; }   /* «Тёплый контур» (18 px) — в одну строку */
+  .extras { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .estimate { padding-top: 64px; }   /* штамп «Цена фиксируется» не заходит на заголовок сметы (L52) */
+  /* Этапы: текст слева, фото справа по высоте текста */
+  .stage { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; }
+  .stage__media { order: 0; align-self: stretch; }
+  .stage__media::before { content: ""; display: block; aspect-ratio: 707 / 420; }
+  .stage__img { position: absolute; inset: 0; height: 100%; aspect-ratio: auto; }
+  .stage__text .t-h3 { text-wrap: balance; }   /* колонка уже макета: ручной перенос оставлял висящее «закрыт» (L48) */
+  .stage__text .t-h3 br { display: none; }
+  /* Гарантии: фото слева, условия договора справа (пропорции десктопа 549 : 771, зазор 40),
+     фото по высоте условий (L43, правка 2026-10-07) */
+  .guarantees__row { grid-template-columns: minmax(0, 549fr) minmax(0, 771fr); gap: 2.5rem; }
+  .guarantees__img { align-self: stretch; height: 100%; aspect-ratio: auto; object-position: 65% 50%; }   /* кадр почти квадратный — сдвиг вправо, чтобы инженер справа не резался (правка 2026-10-07) */
+  /* Заголовки «Калькулятора» и «Вопросов» — в одну строку */
+  #kalkulyator-title br, #voprosy-title br { display: none; }
+  /* Заявка: текст сверху на всю ширину, ниже форма и фото пополам, на одном уровне (фото по высоте формы) */
+  .request__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "intro intro" "card photo"; column-gap: 2rem; }
+  .request__photo { align-self: stretch; }
+  .request__frame { height: 100%; min-height: 15rem; aspect-ratio: auto; }
+}

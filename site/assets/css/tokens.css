@@ -1,0 +1,182 @@
+/* Токены варианта 3 «Чертёж» (палитра Woodberry). Источник значений — DESIGN.md и макет Figma «Page 3».
+   Шрифты — только локальные WOFF2 из ../fonts (файлы и лицензии OFL кладутся на /build, SPEC.md 0.6). */
+
+@font-face { font-family: "Geologica"; src: url("../fonts/geologica-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geologica"; src: url("../fonts/geologica-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Onest"; src: url("../fonts/onest-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Onest"; src: url("../fonts/onest-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("../fonts/jetbrains-mono-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("../fonts/jetbrains-mono-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+
+:root {
+  /* Палитра — только эти значения (L1) */
+  --c-white: #ffffff;
+  --c-panel: #ecece7;
+  --c-ink: #30341e;
+  --c-text: #777777;
+  --c-muted: #a1a494;
+  --c-chip: #dfdfdf;
+  --c-olive: #555a3a;
+  --c-olive-dark: #434828;
+  --c-orange: #ff8534;
+  --c-line-dark: rgb(161 164 148 / .4);
+
+  /* Совместимость с общими стилями шаблона */
+  --color-bg: var(--c-white);
+  --color-surface: var(--c-white);
+  --color-text: var(--c-ink);
+  --color-muted: var(--c-text);
+  --color-accent: var(--c-orange);
+  --color-accent-hover: var(--c-orange);  /* наведение — filter: brightness(.94), новых цветов нет */
+  --color-accent-text: var(--c-white);
+  --color-line: var(--c-chip);
+
+  /* Шрифты */
+  --font-heading: "Geologica", system-ui, sans-serif;
+  --font-body: "Onest", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Размеры — в rem: 1rem = 16 px макета (px макета = rem × 16). На десктопе ≥ 1024 rem масштабируется с окном (base.css, L25) */
+  /* Шкала текста (L15): размер / межстрочный / разрядка. Десктоп ≥ 1200 */
+  --display-size: 3.375rem; --display-lh: 3.75rem;  --display-ls: -0.02em;   /* 54/60 — правка владельца 2026-10-05 */
+  --number-size: 3.75rem;   --number-lh: 4.25rem;   --number-ls: -0.02em;
+  --h2-size: 2.875rem;      --h2-lh: 3.25rem;       --h2-ls: -0.02em;   /* 46/52 — правка владельца 2026-10-05 */
+  --h2s-size: 2.75rem;      --h2s-lh: 3.25rem;      --h2s-ls: -0.02em;
+  --price-size: 2.25rem;    --price-lh: 2.75rem;    --price-ls: -0.01em;
+  --h3-size: 2rem;       --h3-lh: 2.5rem;       --h3-ls: -0.01em;
+  --h3s-size: 1.75rem;      --h3s-lh: 2.25rem;      --h3s-ls: 0; --h3s-weight: 400;
+  --h4-size: 1.25rem;       --h4-lh: 1.75rem;
+  --lead-size: 1.125rem;     --lead-lh: 1.75rem;
+  --body-size: 1rem;     --body-lh: 1.5rem;
+  --body-s-size: 0.875rem;   --body-s-lh: 1.25rem;
+  --body-xs-size: 0.75rem;   --body-xs-lh: 1rem;      /* Onest 12/16 — юр. ссылки в подвале (как в макете) */
+  --mono-l-size: 1.125rem;   --mono-l-lh: 1.75rem;
+  --mono-size: 0.875rem;     --mono-lh: 1.25rem;
+  --mono-s-size: 0.75rem;   --mono-s-lh: 1rem;
+  --wordmark-size: 12.5rem; --wordmark-lh: 10rem; --wordmark-ls: -0.04em;
+  --button-size: 1.125rem;   --button-lh: 1.75rem;
+
+  /* Отступы и сетка */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-section: 7.5rem;          /* сверху и снизу у секций */
+  --gutter: 2.5rem;                  /* поля по бокам */
+  --container: 85rem;             /* контент */
+  --header-height: 5.25rem;
+  --header-offset: 5.75rem;           /* шапка + зазор: якоря */
+  --control-height: 3.75rem;          /* кнопки, одна высота на всём сайте */
+  --control-height-header: 2.875rem;  /* кнопка в шапке десктопа: 46, текст 16/24 (правка владельца 2026-10-05) */
+  --control-height-small: 3rem;    /* кнопки-иконки на телефоне */
+  --radius: 0;                     /* углы 0, кругов нет (L10) */
+
+  /* Движение */
+  --transition: 200ms;
+  --transition-soft: 400ms;        /* наведение, смена цвета, вкладки */
+  --motion-main: 800ms;            /* основные движения — от 0,8 с */
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);   /* выезд окна заявки — разгон и торможение, как в референсе only.digital */
+}
+
+/* Узкий десктоп 1024–1199 (правка владельца 2026-10-05, L42): раскладка — десктоп в масштабе (rem = ширина / 90, base.css),
+   а текст, кнопки и шапка — в px по макету 768, иначе на 1024 текст стал бы 11–13 px. Отступы секций — 80 */
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+  :root {
+    --display-size: 44px; --display-lh: 52px; --display-ls: -0.02em;
+    --number-size: 44px;  --number-lh: 52px;  --number-ls: -0.02em;
+    --h2-size: 36px;      --h2-lh: 44px;      --h2-ls: -0.01em;
+    --h2s-size: 32px;     --h2s-lh: 40px;     --h2s-ls: -0.01em;
+    --price-size: 28px;   --price-lh: 36px;   --price-ls: 0;
+    --h3-size: 28px;      --h3-lh: 36px;      --h3-ls: 0;
+    --h3s-size: 20px;     --h3s-lh: 28px;     --h3s-ls: 0; --h3s-weight: 400;
+    --h4-size: 20px;      --h4-lh: 28px;
+    --lead-size: 16px;    --lead-lh: 24px;
+    --body-size: 16px;    --body-lh: 24px;
+    --body-s-size: 14px;  --body-s-lh: 20px;
+    --body-xs-size: 12px; --body-xs-lh: 16px;
+    --mono-l-size: 14px;  --mono-l-lh: 20px;
+    --mono-size: 14px;    --mono-lh: 20px;
+    --mono-s-size: 12px;  --mono-s-lh: 16px;
+    --button-size: 16px;  --button-lh: 24px;
+    --space-section: 80px;
+    --header-height: 84px;
+    --header-offset: 92px;
+    --control-height: 52px;
+  }
+}
+
+/* Планшет: 600–1023 (макет 768). Текст, кнопки и шапка — как на принятом узком десктопе 1024 (правки владельца 2026-10-07,
+   L56 — для 980–1023, L59 — для 600–979): вкладки 20/28, текст и кнопки 16/24, кнопки и бургер 52, шапка 72. Телефон
+   (< 600) наследует кнопки 52 и текст кнопок 16/24 — одна высота кнопок на всех ширинах до 1200 */
+@media (max-width: 1023.98px) {
+  :root {
+    --display-size: 2.75rem; --display-lh: 3.25rem; --display-ls: -0.02em;
+    --number-size: 2.75rem;  --number-lh: 3.25rem;  --number-ls: -0.02em;
+    --h2-size: 2.25rem;      --h2-lh: 2.75rem;      --h2-ls: -0.01em;
+    --h2s-size: 2rem;     --h2s-lh: 2.5rem;     --h2s-ls: -0.01em;
+    --price-size: 1.75rem;   --price-lh: 2.25rem;   --price-ls: 0;
+    --h3-size: 1.75rem;      --h3-lh: 2.25rem;      --h3-ls: 0;
+    --h3s-size: 1.25rem;     --h3s-lh: 1.75rem;     --h3s-ls: 0; --h3s-weight: 400;
+    --h4-size: 1.25rem;      --h4-lh: 1.75rem;
+    --lead-size: 1rem;       --lead-lh: 1.5rem;
+    --body-size: 1rem;       --body-lh: 1.5rem;
+    --mono-l-size: 0.875rem; --mono-l-lh: 1.25rem;
+    --button-size: 1rem;     --button-lh: 1.5rem;
+    --control-height: 3.25rem;
+    --space-section: 3.75rem;
+    --header-height: 4.5rem;   /* кнопка и бургер 52 с полями 10 */
+    --header-offset: 5rem;
+  }
+}
+
+/* Планшет 600–979 (правка владельца 2026-10-07, L59): колонка одна, заголовки — на ступень меньше, чем на 980–1023:
+   те же значения шкалы, что на телефоне (новых размеров нет, L15) */
+@media (max-width: 979.98px) {
+  :root {
+    --display-size: 2.25rem; --display-lh: 2.75rem; --display-ls: -0.01em;
+    --number-size: 2.25rem;  --number-lh: 2.75rem;  --number-ls: -0.01em;
+    --h2-size: 2rem;      --h2-lh: 2.5rem;      --h2-ls: -0.01em;
+    --h2s-size: 1.75rem;     --h2s-lh: 2.25rem;     --h2s-ls: 0;
+  }
+}
+
+/* Телефон: < 600 (макет 360) */
+@media (max-width: 599.98px) {
+  :root {
+    --display-size: 2.25rem; --display-lh: 2.75rem; --display-ls: -0.01em;
+    --number-size: 2.25rem;  --number-lh: 2.75rem;  --number-ls: -0.01em;
+    --h2-size: 2rem;      --h2-lh: 2.5rem;      --h2-ls: -0.01em;
+    --h2s-size: 1.75rem;     --h2s-lh: 2.25rem;     --h2s-ls: 0;
+    --price-size: 1.75rem;   --price-lh: 2.25rem;   --price-ls: 0;
+    --h3-size: 1.75rem;      --h3-lh: 2.25rem;      --h3-ls: 0;
+    --h3s-size: 1.25rem;     --h3s-lh: 1.75rem;     --h3s-weight: 500;
+    --lead-size: 1rem;    --lead-lh: 1.5rem;
+    --mono-l-size: 0.875rem;  --mono-l-lh: 1.25rem;
+    --wordmark-size: 7.5rem; --wordmark-lh: 6rem;
+    --space-section: 4rem;
+    --gutter: 1rem;
+    --header-height: 3.75rem;   /* 60: в шапке только логотип и бургер 44 (правка владельца 2026-10-07, L63) */
+    --header-offset: 4.25rem;
+    --control-height-small: 2.75rem;
+  }
+}
+
+/* Телефоны уже 480 (правка владельца 2026-10-07, L62): лозунг и цифры 32/40 */
+@media (max-width: 479.98px) {
+  :root {
+    --display-size: 2rem;    --display-lh: 2.5rem;  --display-ls: -0.01em;
+    --number-size: 2rem;     --number-lh: 2.5rem;   --number-ls: -0.01em;
+  }
+}
+/* 480 и уже (правка владельца 2026-10-07, L63): заголовки секций 24/32, названия проектов, шаги и цены 20/28 —
+   три различимые ступени под лозунгом */
+@media (max-width: 480.98px) {
+  :root {
+    --h2-size: 1.5rem;       --h2-lh: 2rem;         --h2-ls: 0;
+    --h2s-size: 1.25rem;     --h2s-lh: 1.75rem;     --h2s-ls: 0;
+    --price-size: 1.25rem;   --price-lh: 1.75rem;   --price-ls: 0;
+    --h3-size: 1.25rem;      --h3-lh: 1.75rem;      --h3-ls: 0;
+  }
+}
