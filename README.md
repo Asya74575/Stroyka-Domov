@@ -8,7 +8,9 @@
 
 ## Что внутри
 
-- `site/` — готовый сайт: HTML, CSS, JavaScript без сборки и фреймворков. Открывается двойным щелчком по `site/index.html`.
+Сайт: https://asya74575.github.io/Stroyka-Domov/
+
+- `index.html`, `assets/`, `img/`, `legal/`, `404.html` — готовый сайт: HTML, CSS, JavaScript без сборки и фреймворков. Открывается и двойным щелчком по `index.html`.
 - `materials/` — исходные изображения и тексты страницы; источники и лицензии изображений — `materials/ASSETS.md`.
 
 ## На сайте
@@ -24,7 +26,7 @@
 ## Шрифты и изображения
 
 Шрифты Geologica, Onest и JetBrains Mono подключены локальными файлами (SIL Open Font License, лицензии — рядом с файлами
-в `site/assets/fonts`). Фотографии — стоковые заглушки (Pexels, Unsplash, Wikimedia Commons) и одно сгенерированное
+в `assets/fonts`). Фотографии — стоковые заглушки (Pexels, Unsplash, Wikimedia Commons) и одно сгенерированное
 изображение; авторы и лицензии — в `materials/ASSETS.md`.
 
 Форма заявки демонстрационная: данные никуда не отправляются.
