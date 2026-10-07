@@ -122,18 +122,33 @@
     };
   }
 
-  // Телефон (подсказка — карточка над списком, L74): новый текст подсказки меняет её высоту плавно, за 0,4 с, —
-  // иначе список под ней прыгал на разницу высот. На планшете и десктопе подсказка лежит поверх фото — без изменений.
-  function swapTip(view, n) {
+  // Телефон (подсказка — белая карточка над списком, L74): высота карточки — по её тексту и меняется вместе с раскрытием строки:
+  // те же 0,6 с и та же кривая, что у аккордеона; старый текст гаснет за 0,2 с, новый проявляется. Конечная высота
+  // замеряется заранее в невидимой копии карточки. На планшете и десктопе подсказка лежит поверх фото — без изменений.
+  function tipHeight(view, n) {
+    var probe = view.tip.cloneNode(true);
+    probe.style.cssText = 'position:absolute;visibility:hidden;left:0;top:0;height:auto;width:' + view.tip.getBoundingClientRect().width + 'px';
+    probe.setAttribute('aria-hidden', 'true');
+    var data = layerData(view, n);
+    probe.querySelector('.cutaway__tip-title').textContent = data.title;
+    probe.querySelector('.cutaway__tip-text').textContent = data.text;
+    var chips = probe.querySelector('.chips');
+    chips.replaceChildren.apply(chips, data.chips.map(function (chip) { var li = document.createElement('li'); li.className = 't-mono-s'; li.textContent = chip; return li; }));
+    chips.hidden = !data.chips.length;
+    view.tip.parentNode.appendChild(probe);
+    var h = probe.getBoundingClientRect().height;
+    probe.remove();
+    return h;
+  }
+  function resizeTip(view, n) {
     var tip = view.tip;
-    var from = tip.offsetHeight;   // если высота ещё едет — с текущей
-    if (tip._anim) { tip._anim.cancel(); tip._anim = null; }
-    fillTip(view, n);
     if (reduce || !tip.animate || getComputedStyle(tip).position !== 'static') return;
-    var to = tip.offsetHeight;
-    if (Math.abs(from - to) < 1) return;
+    var from = tip.getBoundingClientRect().height;   // если высота ещё едет — с текущей
+    if (tip._anim) { tip._anim.cancel(); tip._anim = null; }
+    var to = tipHeight(view, n);
+    if (Math.abs(from - to) < 0.5) return;
     tip.style.overflow = 'hidden';
-    var anim = tip.animate([{ height: from + 'px' }, { height: to + 'px' }], { duration: 400, easing: EASE });
+    var anim = tip.animate([{ height: from + 'px' }, { height: to + 'px' }], { duration: 600, easing: EASE });
     tip._anim = anim;
     var end = function () { if (tip._anim === anim) { tip._anim = null; tip.style.overflow = ''; } };
     anim.onfinish = end;
@@ -155,9 +170,12 @@
       if (smooth) slide(body, on); else body.hidden = !on;
     });
     if (animate) {
+      var n = current;
+      resizeTip(view, n);
       view.tip.classList.add('is-fading');
       setTimeout(function () {
-        swapTip(view, current);
+        if (n !== current) return;   // пока гасло, выбрали другой слой — его таймер покажет свой текст
+        fillTip(view, n);
         view.tip.classList.remove('is-fading');
         place(view);
       }, 200);
@@ -195,7 +213,7 @@
   function holdAt(view, el) {
     if (getComputedStyle(view.tip).position !== 'static') return;   // только раскладка телефона: подсказка над списком
     var idle = !hold;
-    hold = { el: el, top: el.getBoundingClientRect().top, until: performance.now() + 800 };   // 0,2 с затухание + 0,4 с высота подсказки + запас
+    hold = { el: el, top: el.getBoundingClientRect().top, until: performance.now() + 750 };   // 0,6 с — строки и высота подсказки + запас
     document.documentElement.style.overflowAnchor = 'none';
     if (idle) requestAnimationFrame(keep);
   }
@@ -226,35 +244,15 @@
     render(view, false);
   });
 
-  // Телефон (L74): подсказка над списком и описание материала — одной высоты для всех слоёв и всех вкладок (по самому
-  // длинному тексту). Тогда список стоит на одном месте: выбор слоя и смена вкладки не сдвигают его вверх-вниз.
+  // Телефон (L74): описание материала (тёмная плашка над списком) — одной высоты во всех вкладках, по самому длинному тексту:
+  // смена вкладки не сдвигает список на разницу описаний. Белая подсказка — по своему тексту (правка владельца 2026-10-07).
   function evenHeights() {
     var phone = getComputedStyle(views[0].tip).position === 'static';
-    var abouts = views.map(function (view) { return view.panel.querySelector('.cutaway__about'); });
-    views.forEach(function (view, i) { view.tip.style.minHeight = ''; if (abouts[i]) abouts[i].style.minHeight = ''; });
+    var abouts = views.map(function (view) { return view.panel.querySelector('.cutaway__about'); }).filter(Boolean);
+    abouts.forEach(function (about) { about.style.minHeight = ''; });
     if (!phone) return;
-    var tipMax = 0, aboutMax = 0;
-    views.forEach(function (view, i) {
-      var probe = view.tip.cloneNode(true);   // замер текстов всех слоёв в копии подсказки той же ширины
-      probe.style.cssText = 'position:absolute;visibility:hidden;left:0;top:0;width:' + view.tip.getBoundingClientRect().width + 'px';
-      probe.setAttribute('aria-hidden', 'true');
-      view.tip.parentNode.appendChild(probe);
-      var title = probe.querySelector('.cutaway__tip-title'), text = probe.querySelector('.cutaway__tip-text'), chips = probe.querySelector('.chips');
-      view.rows.forEach(function (row, n) {
-        var data = layerData(view, n + 1);
-        title.textContent = data.title;
-        text.textContent = data.text;
-        chips.replaceChildren.apply(chips, data.chips.map(function (chip) { var li = document.createElement('li'); li.className = 't-mono-s'; li.textContent = chip; return li; }));
-        chips.hidden = !data.chips.length;
-        tipMax = Math.max(tipMax, probe.offsetHeight);
-      });
-      probe.remove();
-      if (abouts[i]) aboutMax = Math.max(aboutMax, abouts[i].offsetHeight);
-    });
-    views.forEach(function (view, i) {
-      view.tip.style.minHeight = Math.ceil(tipMax) + 'px';
-      if (abouts[i]) abouts[i].style.minHeight = Math.ceil(aboutMax) + 'px';
-    });
+    var max = Math.max.apply(null, abouts.map(function (about) { return about.offsetHeight; }));
+    abouts.forEach(function (about) { about.style.minHeight = Math.ceil(max) + 'px'; });
   }
   evenHeights();
 
