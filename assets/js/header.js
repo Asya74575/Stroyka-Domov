@@ -2,6 +2,12 @@
 // Внутри [data-include="header"] лежит статичная копия той же разметки — без JS страница не ломается.
 // Меню: бургер → экран под шапкой (затухание 0,4 с), страница не прокручивается, фокус заперт внутри шапки и меню,
 // закрытие — крестик, Esc, клик по пункту; после закрытия фокус возвращается на бургер.
+// Рамка фокуса — только при работе с клавиатуры (L71): Tab ставит на <html> класс kbd, мышь и касание снимают.
+(function (root) {
+  document.addEventListener('keydown', function (event) { if (event.key === 'Tab' && !root.classList.contains('kbd')) root.classList.add('kbd'); }, true);
+  document.addEventListener('pointerdown', function () { if (root.classList.contains('kbd')) root.classList.remove('kbd'); }, true);
+})(document.documentElement);
+
 (function () {
   var mount = document.querySelector('[data-include="header"]');
   if (!mount || !window.SITE) return;

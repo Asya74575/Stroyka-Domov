@@ -5,7 +5,7 @@
   if (!list) return;
   var items = Array.prototype.slice.call(list.querySelectorAll('details'));
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var EASE = 'cubic-bezier(.22, 1, .36, 1)';
+  var EASE = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim() || 'ease';   // общая кривая tokens.css (L64)
   var GAP = getComputedStyle(document.documentElement).getPropertyValue('--faq-gap') || '-10px';
 
   function run(body, frames, done) {

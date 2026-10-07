@@ -185,15 +185,20 @@ document.querySelectorAll('form[data-form="demo"]').forEach(function (form) {
     var area = document.getElementById('calc-area');
     if (area) setTimeout(function () { area.focus({ preventScroll: true }); }, 0);
   });
-  // «Вернуться к заявке»: к форме, плашка с обновлённым расчётом коротко подсвечивается, фокус — на её галочке
+  // «Вернуться к заявке»: к форме, плашка с обновлённым расчётом коротко подсвечивается, фокус — на её галочке.
+  // Страница доезжает до формы плавно (scroll.js) — подсветка, когда доехали (событие anchor:arrive), иначе её не увидеть
+  var section = form.closest('section');
+  function highlight() {
+    attach.focus({ preventScroll: true });
+    note.classList.add('is-updated');
+    setTimeout(function () { note.classList.remove('is-updated'); }, 1200);
+  }
   if (cta) cta.querySelector('a').addEventListener('click', function () {
     if (!editing) return;
     editing = false;
     cta.classList.remove('is-editing');
-    if (!body.hidden) setTimeout(function () {
-      attach.focus({ preventScroll: true });
-      note.classList.add('is-updated');
-      setTimeout(function () { note.classList.remove('is-updated'); }, 1200);
-    }, 0);
+    if (body.hidden) return;
+    if (!window.kedrScrollTo || !section) { setTimeout(highlight, 0); return; }
+    section.addEventListener('anchor:arrive', highlight, { once: true });
   });
 });

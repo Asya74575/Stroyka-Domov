@@ -8,7 +8,7 @@
    --sbw — ширина полосы прокрутки (скрипт в <head>), без JS — 0. */
 html { font-size: 16px; }
 @media (min-width: 1024px) { html { font-size: calc((100vw - var(--sbw, 0px)) / 90); } }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: var(--header-offset); }   /* якорь не прячется под шапку; переход — сразу, без «доезда» */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: var(--header-offset); }   /* якорь не прячется под шапку; плавный переход к якорю — scroll.js (L64) */
 body { margin: 0; background: var(--c-white); color: var(--c-ink); font-family: var(--font-body); font-size: var(--body-size); line-height: var(--body-lh); font-kerning: normal; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 img, video, svg { display: block; max-width: 100%; }
 img { height: auto; }
@@ -18,6 +18,10 @@ h1, h2, h3, h4, p, ul, ol, figure, dl, dd, blockquote { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--c-orange); outline-offset: 2px; }
+/* Рамка фокуса — только для тех, кто ходит по сайту клавишей Tab (класс kbd ставит header.js); мышью и пальцем —
+   никаких оранжевых рамок, в том числе когда фокус ставит скрипт (крестик окна заявки, кнопка после закрытия меню).
+   Правка владельца 2026-10-07, L71. Без JS — обычное поведение браузера */
+.js:not(.kbd) :focus-visible { outline: none; }
 [hidden] { display: none !important; }
 
 .container { width: min(var(--container), 100% - 2 * var(--gutter)); margin-inline: auto; }
@@ -191,6 +195,12 @@ html.menu-open { overflow: hidden; padding-right: var(--sbw, 0px); }   /* тол
   .site-footer__bottom-links { display: grid; gap: 1rem; }
   .site-footer__word { margin-top: 2.5rem; }
 }
+/* Десктоп от 1024: мессенджеры — три кнопки одной ширины, вместе — по ширине строки адреса (--addr-w считает footer.js;
+   без JS — на всю колонку контактов). Правка владельца 2026-10-07, L68 */
+@media (min-width: 1024px) {
+  .site-footer .contacts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: var(--addr-w, 100%); max-width: 100%; }
+  .site-footer .contacts__link { width: 100%; justify-content: center; padding-inline: 0.25rem; }
+}
 /* 1024–1199: копирайт в одну строку, юр. ссылки — одна под другой, каждая в одну строку (правка владельца 2026-10-06, L52) */
 @media (min-width: 1024px) and (max-width: 1199.98px) {
   .site-footer__bottom { grid-template-columns: max-content max-content; justify-content: space-between; column-gap: 24px; }
@@ -263,6 +273,7 @@ html.menu-open { overflow: hidden; padding-right: var(--sbw, 0px); }   /* тол
 .page-404 { padding: 7.5rem 0; }
 .page-404__inner { display: grid; justify-items: start; gap: 1.5rem; max-width: 51.25rem; }
 .page-404 p { color: var(--c-text); }
+@media (max-width: 599.98px) { .page-404__inner .button { width: 100%; } }   /* телефон: кнопка во всю ширину, как на главной (L72) */
 
 /* ── Наведение — только мышью (правило 8) ── */
 @media (hover: hover) {

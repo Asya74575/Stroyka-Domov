@@ -1,5 +1,7 @@
-// Параллакс (рецепт parallax): фото отстаёт от прокрутки и мягко её догоняет (инерция 0,14 с); кадры считаются,
-// только пока фото догоняет, постоянного цикла нет. Переход по якорю — сразу, без «доезда».
+// Параллакс (рецепт parallax): фото отстаёт от прокрутки и мягко её догоняет (инерция 0,2 с); кадры считаются,
+// только пока фото догоняет, постоянного цикла нет. Пока фото в окне, оно всегда догоняет плавно — даже на быстрой
+// прокрутке и плавном переходе к форме (раньше при большом отставании фото «перескакивало» — рывок, L64); вне окна
+// встаёт на место сразу, этого не видно.
 // [data-parallax="photo"] — фото заявки: картинка выше рамки на 30 % и сдвигается на ±15 % высоты рамки.
 // [data-parallax="hero"] — снимок первого экрана (только десктоп): при загрузке кадр как в макете, при прокрутке
 // снимок вместе с точками и выносками уходит вниз в пределах запаса над кадром (на планшете и телефоне запаса нет).
@@ -10,9 +12,9 @@
   var root = document.documentElement;
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   var desk = window.matchMedia('(min-width: 1024px)');
-  var DEPTH = 0.15, LAG = 140;
+  var DEPTH = 0.15, LAG = 200;
   var state = frames.map(function (el) {
-    return { el: el, hero: el.getAttribute('data-parallax') === 'hero', canvas: el.querySelector('.hero__canvas'), cur: null, target: 0, h: 1 };
+    return { el: el, hero: el.getAttribute('data-parallax') === 'hero', canvas: el.querySelector('.hero__canvas'), cur: null, target: 0, h: 1, vis: false };
   });
   var raf = 0, last = 0;
 
@@ -21,6 +23,7 @@
     state.forEach(function (s) {
       var r = s.el.getBoundingClientRect();
       s.h = r.height;
+      s.vis = r.bottom > 0 && r.top < vh;
       if (s.hero) {
         if (!desk.matches || !s.canvas) { s.target = 0; return; }
         // запас снимка над кадром (холст сдвинут вверх, page.css); снимок уходит вниз, пока кадр поднимается к шапке,
@@ -41,7 +44,7 @@
     last = ts;
     state.forEach(function (s) {
       var d = s.target - (s.cur === null ? s.target : s.cur);
-      if (s.cur === null || Math.abs(d) > s.h * 0.12) s.cur = s.target;   // скачок (переход по якорю) — сразу
+      if (s.cur === null || !s.vis) s.cur = s.target;   // вне окна — сразу на место
       else if (Math.abs(d) > 0.3) { s.cur += d * (1 - Math.exp(-dt / LAG)); busy = true; }
       else s.cur = s.target;
       s.el.style.setProperty('--shift', s.cur.toFixed(1) + 'px');

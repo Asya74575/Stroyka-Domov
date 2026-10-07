@@ -2,11 +2,11 @@
 // точка становится оранжевой, строка раскрывается (открыта одна), подсказка меняет текст затуханием, выносная линия
 // перестраивается за 0,4 с (от точки по горизонтали, затем вверх к подсказке). Если точка под подсказкой — подсказка
 // переезжает в левый верхний угол. На телефоне подсказка — карточка под фото, линии нет.
-// Без JS — в каждой вкладке открыт слой 02 (разметка).
+// По умолчанию выбран слой 01 «Фундамент» (правка владельца 2026-10-07, L67); без JS — в каждой вкладке открыт слой 01 (разметка).
 (function () {
   var panels = Array.prototype.slice.call(document.querySelectorAll('[data-cutaway]'));
   if (!panels.length) return;
-  var current = 2;
+  var current = 1;
   var NBSP = '\u00A0';
 
   function pad(n) { return (n < 10 ? '0' : '') + n; }
@@ -85,7 +85,44 @@
     }
   }
 
-  function render(view, animate) {
+  // Раскрытие строки — как у «Вопросов» (faq.js, L70): высота и проявление за 0,6 с по общей кривой --ease;
+  // закрывающаяся строка сворачивается так же. Пока строки меняют высоту, подсказка и выносная линия
+  // пересчитываются каждый кадр (на 1024–1199 фото тянется по высоте экспликации). При reduced motion — сразу.
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var EASE = getComputedStyle(document.documentElement).getPropertyValue('--ease').trim() || 'ease';
+  var running = 0;
+  function follow() {
+    if (!running) return;
+    views.forEach(place);
+    requestAnimationFrame(follow);
+  }
+  function slide(body, open) {
+    var from = body.hidden ? 0 : body.getBoundingClientRect().height;   // если строка ещё едет — с текущей высоты
+    if (body._anim) { body._anim.cancel(); body._anim = null; }
+    if (reduce || !body.animate) { body.hidden = !open; return; }
+    body.hidden = false;
+    var pb = getComputedStyle(body).paddingBottom;
+    var to = open ? body.offsetHeight : 0;
+    if (Math.abs(from - to) < 1) { body.hidden = !open; return; }
+    var shut = { height: '0px', paddingBottom: '0px', opacity: 0 };
+    var full = { height: (open ? to : from) + 'px', paddingBottom: pb, opacity: 1 };
+    var startH = { height: from + 'px', paddingBottom: from ? pb : '0px', opacity: from ? 1 : 0 };
+    var anim = body.animate([startH, open ? full : shut], { duration: 600, easing: EASE, fill: 'forwards' });
+    body._anim = anim;
+    if (!running++) requestAnimationFrame(follow);
+    var end = function () { running--; };
+    anim.oncancel = end;
+    anim.onfinish = function () {
+      end();
+      body._anim = null;
+      if (!open) body.hidden = true;
+      anim.oncancel = null;
+      anim.cancel();
+      views.forEach(place);
+    };
+  }
+
+  function render(view, animate, smooth) {
     view.points.forEach(function (point) {
       var on = Number(point.dataset.layer) === current;
       point.classList.toggle('is-active', on);
@@ -96,9 +133,8 @@
       var btn = row.querySelector('.layer__btn');
       row.classList.toggle('is-open', on);
       btn.setAttribute('aria-expanded', String(on));
-      var use = btn.querySelector('use');
-      if (use) use.setAttribute('href', on ? '#i-minus' : '#i-plus');
-      row.querySelector('.layer__body').hidden = !on;
+      var body = row.querySelector('.layer__body');
+      if (smooth) slide(body, on); else body.hidden = !on;
     });
     if (animate) {
       view.tip.classList.add('is-fading');
@@ -116,7 +152,7 @@
   function select(n, source) {
     if (n === current) return;
     current = n;
-    views.forEach(function (view) { render(view, view === source); });
+    views.forEach(function (view) { render(view, view === source, true); });
   }
 
   views.forEach(function (view) {

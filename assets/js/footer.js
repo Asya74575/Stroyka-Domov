@@ -80,4 +80,24 @@
   grid.append(brand, cols, el('p', 'site-footer__cities t-body-s', info.cities), bottom, word);
   footer.append(grid);
   mount.replaceChildren(footer);
+
+  // Десктоп (от 1024): три кнопки мессенджеров вместе — ровно по ширине строки адреса над ними (правка владельца
+  // 2026-10-07, L68). Ширина — по самой длинной строке текста адреса, а не по колонке; CSS берёт её из --addr-w.
+  // Без JS кнопки — на всю колонку контактов.
+  var address = contacts.querySelector('.site-footer__address');
+  var queued = false;
+  function fit() {
+    queued = false;
+    var range = document.createRange();
+    range.selectNodeContents(address);
+    var rects = Array.prototype.slice.call(range.getClientRects());
+    if (!rects.length) return;
+    var left = Math.min.apply(null, rects.map(function (r) { return r.left; }));
+    var right = Math.max.apply(null, rects.map(function (r) { return r.right; }));
+    list.style.setProperty('--addr-w', (right - left).toFixed(2) + 'px');
+  }
+  function refit() { if (!queued) { queued = true; requestAnimationFrame(fit); } }
+  fit();
+  window.addEventListener('resize', refit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
 })();
