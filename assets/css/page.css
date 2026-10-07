@@ -48,7 +48,7 @@ html:not(.js) .tabs-row .tabs { visibility: hidden; }   /* без JS все па
 .js .tab-panels { display: grid; }
 /* уходящая панель гаснет за 0,25 с, новая проявляется за 0,4 с с задержкой 0,15 с — тексты не накладываются */
 .js .tab-panels > .tab-panel { grid-area: 1 / 1; align-content: start; transition: opacity .6s var(--ease) .2s, visibility 0s; }   /* короткая панель не растягивает свои строки до высоты длинной (L48) */
-.js .tab-panels > .tab-panel.is-hidden { opacity: 0; visibility: hidden; transition: opacity .35s var(--ease), visibility 0s linear .35s; }
+.js .tab-panels > .tab-panel.is-hidden { opacity: 0; visibility: hidden; overflow-anchor: none; transition: opacity .35s var(--ease), visibility 0s linear .35s; }   /* скрытая вкладка не служит браузеру опорой прокрутки — иначе её изменения двигают страницу (L74) */
 
 /* ── 02 Первый экран + цифры ── */
 .hero__grid { display: grid; grid-template-columns: 820fr 500fr; column-gap: 2.5rem; grid-template-areas: "stamp stamp" "title price" "intro actions" "figure figure" "facts facts"; }
@@ -341,7 +341,7 @@ html:not(.js) .cutaway__line { display: none; }
   .cutaway__frame { aspect-ratio: 328 / 250; }
   .cutaway__point { width: 1.5rem; height: 1.5rem; margin: -0.75rem 0 0 -0.75rem; }
   .cutaway__line { display: none; }
-  .cutaway__tip, .cutaway__tip.is-left { position: static; width: auto; }
+  .cutaway__tip, .cutaway__tip.is-left { position: static; width: auto; align-content: start; }   /* высота — по самому длинному слою (cutaway.js, L74): текст сверху */
 }
 
 /* ── 06 Калькулятор ── */

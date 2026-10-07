@@ -122,6 +122,24 @@
     };
   }
 
+  // Телефон (подсказка — карточка над списком, L74): новый текст подсказки меняет её высоту плавно, за 0,4 с, —
+  // иначе список под ней прыгал на разницу высот. На планшете и десктопе подсказка лежит поверх фото — без изменений.
+  function swapTip(view, n) {
+    var tip = view.tip;
+    var from = tip.offsetHeight;   // если высота ещё едет — с текущей
+    if (tip._anim) { tip._anim.cancel(); tip._anim = null; }
+    fillTip(view, n);
+    if (reduce || !tip.animate || getComputedStyle(tip).position !== 'static') return;
+    var to = tip.offsetHeight;
+    if (Math.abs(from - to) < 1) return;
+    tip.style.overflow = 'hidden';
+    var anim = tip.animate([{ height: from + 'px' }, { height: to + 'px' }], { duration: 400, easing: EASE });
+    tip._anim = anim;
+    var end = function () { if (tip._anim === anim) { tip._anim = null; tip.style.overflow = ''; } };
+    anim.onfinish = end;
+    anim.oncancel = end;
+  }
+
   function render(view, animate, smooth) {
     view.points.forEach(function (point) {
       var on = Number(point.dataset.layer) === current;
@@ -139,7 +157,7 @@
     if (animate) {
       view.tip.classList.add('is-fading');
       setTimeout(function () {
-        fillTip(view, current);
+        swapTip(view, current);
         view.tip.classList.remove('is-fading');
         place(view);
       }, 200);
@@ -149,27 +167,102 @@
     place(view);
   }
 
+  // Телефон (L74): то, что нажали, стоит под пальцем неподвижно, пока над ним сворачивается прежний слой и меняется высота
+  // подсказки, — иначе строка уезжала вверх и возвращалась вниз («качок»). Каждый кадр страница докручивается на сдвиг строки;
+  // собственная подстройка прокрутки браузера на это время выключена. Касание, колесо или клавиша прокрутки — отпускаем.
+  // Докрутка — в ResizeObserver: он срабатывает после пересчёта высот и до отрисовки кадра, поэтому строка не отстаёт ни на кадр.
+  var hold = null;
+  function compensate() {
+    if (!hold) return;
+    var d = hold.el.getBoundingClientRect().top - hold.top;
+    if (Math.abs(d) >= 0.5) window.scrollTo(0, window.scrollY + d);
+  }
+  var watcher = window.ResizeObserver ? new ResizeObserver(compensate) : null;
+  if (watcher) views.forEach(function (view) {   // каждая строка и подсказка: общая высота вкладки может не меняться (одна строка закрывается, другая открывается)
+    watcher.observe(view.tip);
+    view.rows.forEach(function (row) { watcher.observe(row); });
+  });
+  function keep() {
+    if (!hold) return;
+    if (!watcher) compensate();
+    if (running || performance.now() < hold.until) requestAnimationFrame(keep);
+    else { compensate(); release(); }
+  }
+  function release() {
+    hold = null;
+    document.documentElement.style.overflowAnchor = '';
+  }
+  function holdAt(view, el) {
+    if (getComputedStyle(view.tip).position !== 'static') return;   // только раскладка телефона: подсказка над списком
+    var idle = !hold;
+    hold = { el: el, top: el.getBoundingClientRect().top, until: performance.now() + 800 };   // 0,2 с затухание + 0,4 с высота подсказки + запас
+    document.documentElement.style.overflowAnchor = 'none';
+    if (idle) requestAnimationFrame(keep);
+  }
+  ['touchstart', 'wheel', 'keydown'].forEach(function (type) {
+    window.addEventListener(type, function () { if (hold) release(); }, { passive: true });
+  });
+
   function select(n, source) {
     if (n === current) return;
     current = n;
-    views.forEach(function (view) { render(view, view === source, true); });
+    views.forEach(function (view) { render(view, true, true); });   // скрытые вкладки — так же плавно: они держат общую высоту блока (L74)
   }
 
   views.forEach(function (view) {
     view.points.forEach(function (point) {
-      point.addEventListener('click', function () { select(Number(point.dataset.layer), view); });
+      point.addEventListener('click', function () {
+        if (Number(point.dataset.layer) !== current) holdAt(view, point);
+        select(Number(point.dataset.layer), view);
+      });
     });
     view.rows.forEach(function (row, i) {
-      row.querySelector('.layer__btn').addEventListener('click', function () { select(i + 1, view); });
+      var btn = row.querySelector('.layer__btn');
+      btn.addEventListener('click', function () {
+        if (i + 1 !== current) holdAt(view, btn);
+        select(i + 1, view);
+      });
     });
     render(view, false);
   });
+
+  // Телефон (L74): подсказка над списком и описание материала — одной высоты для всех слоёв и всех вкладок (по самому
+  // длинному тексту). Тогда список стоит на одном месте: выбор слоя и смена вкладки не сдвигают его вверх-вниз.
+  function evenHeights() {
+    var phone = getComputedStyle(views[0].tip).position === 'static';
+    var abouts = views.map(function (view) { return view.panel.querySelector('.cutaway__about'); });
+    views.forEach(function (view, i) { view.tip.style.minHeight = ''; if (abouts[i]) abouts[i].style.minHeight = ''; });
+    if (!phone) return;
+    var tipMax = 0, aboutMax = 0;
+    views.forEach(function (view, i) {
+      var probe = view.tip.cloneNode(true);   // замер текстов всех слоёв в копии подсказки той же ширины
+      probe.style.cssText = 'position:absolute;visibility:hidden;left:0;top:0;width:' + view.tip.getBoundingClientRect().width + 'px';
+      probe.setAttribute('aria-hidden', 'true');
+      view.tip.parentNode.appendChild(probe);
+      var title = probe.querySelector('.cutaway__tip-title'), text = probe.querySelector('.cutaway__tip-text'), chips = probe.querySelector('.chips');
+      view.rows.forEach(function (row, n) {
+        var data = layerData(view, n + 1);
+        title.textContent = data.title;
+        text.textContent = data.text;
+        chips.replaceChildren.apply(chips, data.chips.map(function (chip) { var li = document.createElement('li'); li.className = 't-mono-s'; li.textContent = chip; return li; }));
+        chips.hidden = !data.chips.length;
+        tipMax = Math.max(tipMax, probe.offsetHeight);
+      });
+      probe.remove();
+      if (abouts[i]) aboutMax = Math.max(aboutMax, abouts[i].offsetHeight);
+    });
+    views.forEach(function (view, i) {
+      view.tip.style.minHeight = Math.ceil(tipMax) + 'px';
+      if (abouts[i]) abouts[i].style.minHeight = Math.ceil(aboutMax) + 'px';
+    });
+  }
+  evenHeights();
 
   var queued = false;
   function relayout() {
     if (queued) return;
     queued = true;
-    requestAnimationFrame(function () { queued = false; views.forEach(place); });
+    requestAnimationFrame(function () { queued = false; evenHeights(); views.forEach(place); });
   }
   window.addEventListener('resize', relayout);
   document.addEventListener('tabs:change', relayout);
